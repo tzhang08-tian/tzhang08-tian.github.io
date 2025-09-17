@@ -1,0 +1,56 @@
+.a{
+	border:20px solid seagreen;
+	background-color: lightpink;
+	width: 300px;
+	height: 250px;
+	border-radius: 20%;
+	position:relative;
+	margin: 30px;
+	margin-left: 300px;
+}
+body {
+  background-color: palevioletred;
+  .b{
+	border:60px solid seagreen;
+	background-color: lightpink;
+	width: 300px;
+	height: 250px;
+	border-radius: 35%;
+	position:relative;
+	margin: 0px;
+	margin-left: 800px;
+	margin-top: 0px;
+}
+.c{
+	border:20px solid seagreen;
+	background-color: lightpink;
+	width: 600px;
+	height: 250px;
+	border-radius: 0%;
+	position:relative;
+	margin: 50px;
+	margin-left: 100px;
+	margin-top: -30px;
+}
+.d{
+	border:10px solid seagreen;
+	background-color: lightpink;
+	width: 300px;
+	height: 300px;
+	border-radius: 50%;
+	position:relative;
+	margin: 50px;
+	margin-left: 800px;
+	margin-top: -100px;
+}
+.e{
+	border:40px solid seagreen;
+	background-color: lightpink;
+	width: 1200px;
+	height: 200px;
+	border-radius: 50%;
+	position:relative;
+	margin: 50px;
+	margin-left: 50px;
+	margin-top: 30px;
+}

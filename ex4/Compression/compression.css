@@ -1,0 +1,55 @@
+#cat{
+	border:40px solid darkred;
+	background-color: silver;
+	width: 900px;
+	height: 800px;
+	position:relative;
+	margin: 0px;
+	margin-left: 230px;
+	margin-top: 200px;
+}
+.dog{
+	border:3px solid burlywood;
+	background-color: darkolivegreen;
+	width: 700px;
+	height: 50px;
+	position:relative;
+	margin: 0px;
+	margin-left: 300px;
+}
+.a{
+	border:20px solid brown;
+	background-color: indianred;
+	width: 600px;
+	height: 10px;
+	position:relative;
+	margin: 0px;
+	margin-left: 250px;
+}	
+.b{
+	border:20px solid black;
+	background-color: silver;
+	width: 800px;
+	height: 20px;
+	position:relative;
+	margin: 0px;
+	margin-left: 300px;
+}	
+.c{
+	border:10px royalblue;
+	background-color: saddlebrown;
+	width: 1000px;
+	height: 40px;
+	position:relative;
+	margin: 0px;
+	margin-left: 100px;
+}	
+.d{
+	border:10px solid royalblue;
+	background-color: rosybrown;
+	width: 700px;
+	height: 20px;
+	position:relative;
+	margin: 0px;
+	margin-left: 320px;
+}	

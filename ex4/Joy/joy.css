@@ -1,3 +1,41 @@
+@keyframes colors {
+  0% {
+    background-color: rgba(190, 235, 230,0.8);
+  }
+  50% {
+    background-color: rgba(166, 186, 171,0.8);
+    color: rgba;
+  }
+  100% {
+    background-color: rgba(7, 61, 17,0.8);
+  }
+}
+
+body {
+  animation: colors 5s infinite alternate;
+  position: relative;
+  background: #a8e6cf;
+}
+
+body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  background-image: radial-gradient(rgba(120, 74, 60, 1.0) 2px, transparent 2px);
+  background-size: 30px 30px;
+
+  pointer-events: none;
+}
+
+
+
+
+
+
 .a{
 	border:20px solid pink;
 	background-color: hotpink;
@@ -7,7 +45,51 @@
 	position:relative;
 	margin: 50px;
 	margin-left: 50px;
+	transition: all 0.3s ease;
 }
+
+.a::after {
+  content: "🥕";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 4rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  text-shadow: 0 0 0px transparent; 
+}
+
+/* 悬停效果 */
+.a:hover {
+  background-color: hotpink;
+  border-width: 30px;   /* 外圈变大 */
+}
+
+.a:hover {
+  width: 100px;         /* 保持整体不变 */
+  height: 100px;
+}
+
+.a:hover::after {
+  opacity: 1;           /* 显示笑脸 */
+}
+
+.a:hover::after {
+  opacity: 1;
+  text-shadow: 0 0 10px yellow, 0 0 20px orange, 0 0 30px red;
+}
+
+
+
+
+
+
+
+
+
+
+
 .b{
 	border:20px solid pink;
 	background-color: hotpink;
@@ -19,8 +101,53 @@
 	margin-left: 50px;
 	margin-top: 150px;
 }
-body {
-  background-color: skyblue;
+
+.b::after {
+  content: "🥒";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  text-shadow: 0 0 0px transparent; 
+}
+
+/* 悬停效果 */
+.b:hover {
+  background-color: hotpink;
+  border-width: 30px;   /* 外圈变大 */
+}
+
+.b:hover {
+  width: 100px;         /* 保持整体不变 */
+  height: 100px;
+}
+
+.b:hover::after {
+  opacity: 1;           /* 显示笑脸 */
+}
+
+.b:hover::after {
+  opacity: 1;
+  text-shadow: 
+  0 0 20px rgba(255,255,255,0.9),
+  0 0 30px rgba(200,200,255,0.7);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 .c{
 	border:20px solid pink;
 	background-color: hotpink;
@@ -165,7 +292,7 @@ body {
 	margin-top: 150px;
 }
 .p{
-	border:0px solid blueviolet;
+	border:2px solid blueviolet;
 	background-color: aliceblue;
 	width: 30px;
 	height: 30px;
@@ -176,7 +303,7 @@ body {
 	margin-top: -150px;
 }
 .q{
-	border:0px solid blueviolet;
+	border:2px solid blueviolet;
 	background-color: aliceblue;
 	width: 30px;
 	height: 30px;
@@ -187,7 +314,7 @@ body {
 	margin-top: -150px;
 }
 .x{
-	border:0px solid blueviolet;
+	border:2px solid blueviolet;
 	background-color: aliceblue;
 	width: 30px;
 	height: 30px;
@@ -198,7 +325,7 @@ body {
 	margin-top: -150px;
 }
 .y{
-	border:0px solid blueviolet;
+	border:2px solid blueviolet;
 	background-color: aliceblue;
 	width: 30px;
 	height: 30px;
@@ -209,7 +336,7 @@ body {
 	margin-top: 150px;
 }
 .z{
-	border:0px solid blueviolet;
+	border:2px solid blueviolet;
 	background-color: aliceblue;
 	width: 30px;
 	height: 30px;

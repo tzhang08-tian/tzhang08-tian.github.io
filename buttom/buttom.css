@@ -1,0 +1,786 @@
+@keyframes colors {
+  0% {
+    background-color: rgba(190, 235, 230,0.8);
+  }
+  50% {
+    background-color: rgba(166, 186, 171,0.8);
+    color: rgba;
+  }
+  100% {
+    background-color: rgba(165,186,145,0.8)
+  }
+}
+
+body {
+  animation: colors 5s infinite alternate;
+  position: relative;
+  background: #a8e6cf;
+}
+
+body::before {
+  --dotColor: rgba(120,74,60,1); /* 初始颜色 */
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 160%;
+  background-image: radial-gradient(var(--dotColor) 2px, transparent 2px);
+  background-size: 30px 30px;
+  pointer-events: none;
+
+  animation: dotsColor 12s infinite linear;
+}
+
+@keyframes dotsColor {
+  0%   { --dotColor: rgba(120,74,60,1); }   /* 棕色 */
+  33%  { --dotColor: rgba(200,50,120,1); }  /* 粉色 */
+  66%  { --dotColor: rgba(60,120,200,1); }  /* 蓝色 */
+  100% { --dotColor: rgba(120,74,60,1); }   /* 回到棕色 */
+}
+
+.allBalls {
+  position: relative;
+  top: -30px; /* 向上移动 100px，根据需要调节 */
+}
+
+.allBalls {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+
+
+
+/* 普通 hover 笑脸 */
+.a:hover::after,
+.b:hover::after,
+.c:hover::after,
+.d:hover::after {
+  opacity: 1;
+}
+
+/* 统一给小球加相对定位，伪元素绝对定位 */
+.a, .b, .c, .d {
+  position: relative;
+  overflow: visible; /* 允许伪元素超出 */
+}
+
+/* 点击时：用 ::before 制作扩展的边框 */
+.a::before,
+.b::before,
+.c::before,
+.d::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 20px solid pink;     /* 初始边框 */
+  transform: translate(-50%, -50%) scale(1);
+  transition: transform 1s ease, border-width 1s ease;
+  z-index: 0; /* 保证在球的背景下层 */
+}
+
+/* 点击时：边框扩展到全屏 */
+.a.active::before,
+.b.active::before,
+.c.active::before,
+.d.active::before {
+  border-width: max(100vw, 100vh);  /* 动态取屏幕最大边 */
+  transform: translate(-50%, -50%) scale(1);
+  z-index: 9999;/*点击后扩展*/
+}
+
+/* 点击时：笑脸显示并旋转 */
+.a.active::after,
+.b.active::after,
+.c.active::after,
+.d.active::after {
+  opacity: 1;
+  animation: spin 2s linear infinite;
+  z-index: 10000;/*最上层*/
+}
+
+@keyframes spin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+
+
+
+
+
+.a{
+	border:20px solid pink;
+	background-color: hotpink;
+	width: 100px;
+	height: 100px;
+	border-radius: 50%;
+	position: absolute;
+	left: 70vw; /* 视口宽度的 70% */
+ top: 30vh;  /* 视口高度的 30% */
+	transition: all 0.3s ease;
+}
+
+.a::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  height: 90%;
+  opacity: 0;                /* 初始隐藏 */
+  transition: opacity 0.4s ease;
+}
+
+/* 悬停时显示笑脸 */
+.a:hover::after {
+  opacity: 1;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><!-- 两个眼睛 --><circle cx='22' cy='24' r='4' fill='yellow'/><circle cx='42' cy='24' r='4' fill='yellow'/> <!-- 嘴巴 --><path d='M20 38 C28 48, 36 48, 44 38' stroke='yellow' stroke-width='3' fill='transparent'/></svg>") no-repeat center/contain;
+}
+
+
+/* 悬停效果 */
+.a:hover {
+  background-color: hotpink;
+  border-width: 50px;   /* 外圈变大 */
+}
+
+.a:hover {
+  width: 100px;         /* 保持整体不变 */
+  height: 100px;
+}
+
+.a:hover::after {
+  opacity: 1;           /* 显示笑脸 */
+}
+
+.a:hover::after {
+  opacity: 1;
+  text-shadow: 0 0 10px yellow, 0 0 20px orange, 0 0 30px red;
+}
+
+
+
+
+
+
+
+
+
+
+
+.b{
+	border:20px solid pink;
+	background-color: hotpink;
+	width: 100px;
+	height: 100px;
+	border-radius: 50%;
+	position: absolute;
+	left: 50vw; 
+ top: 15vh;  
+ transition: all 0.3s ease;
+}
+
+.b::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  height: 90%;
+  opacity: 0;                /* 初始隐藏 */
+  transition: opacity 0.5s ease;
+}
+
+/* 悬停时显示笑脸 */
+.b:hover::after {
+  opacity: 1;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><!-- 两个眼睛 --><circle cx='22' cy='24' r='4' fill='yellow'/><circle cx='42' cy='24' r='4' fill='yellow'/> <!-- 嘴巴 --><path d='M20 38 C28 48, 36 48, 44 38' stroke='yellow' stroke-width='3' fill='transparent'/></svg>") no-repeat center/contain;
+}
+
+
+/* 悬停效果 */
+.b:hover {
+  background-color: hotpink;
+  border-width: 30px;   /* 外圈变大 */
+}
+
+.b:hover {
+  width: 100px;         /* 保持整体不变 */
+  height: 100px;
+}
+
+.b:hover::after {
+  opacity: 1;           /* 显示笑脸 */
+}
+
+.b:hover::after {
+  opacity: 1;
+  text-shadow: 
+  0 0 20px rgba(255,255,255,0.9),
+  0 0 30px rgba(200,200,255,0.7);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+.c{
+	border:20px solid pink;
+	background-color: hotpink;
+	width: 100px;
+	height: 100px;
+	border-radius: 50%;
+	position:absolute;
+	left: 10vw; 
+  top: 80vh; 
+  transition: all 0.3s ease;
+}
+
+.c::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  height: 90%;
+  opacity: 0;                /* 初始隐藏 */
+  transition: opacity 0.5s ease;
+}
+
+/* 悬停时显示笑脸 */
+.c:hover::after {
+  opacity: 1;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><!-- 两个眼睛 --><circle cx='22' cy='24' r='4' fill='yellow'/><circle cx='42' cy='24' r='4' fill='yellow'/> <!-- 嘴巴 --><path d='M20 38 C28 48, 36 48, 44 38' stroke='yellow' stroke-width='3' fill='transparent'/></svg>") no-repeat center/contain;
+}
+
+
+/* 悬停效果 */
+.c:hover {
+  background-color: hotpink;
+  border-width: 30px;   /* 外圈变大 */
+}
+
+.c:hover {
+  width: 100px;         /* 保持整体不变 */
+  height: 100px;
+}
+
+.c:hover::after {
+  opacity: 1;           /* 显示笑脸 */
+}
+
+.c:hover::after {
+  opacity: 1;
+  text-shadow: 
+  0 0 20px rgba(255,255,255,0.9),
+  0 0 30px rgba(200,200,255,0.7);
+}
+
+
+
+
+
+
+
+
+.d{
+	border:19px solid pink;
+	background-color: hotpink;
+	width: 100px;
+	height: 100px;
+	border-radius: 50%;
+	position:absolute;
+	left: 30vw; 
+  top: 45vh; 
+  transition: all 0.3s ease;
+}
+.d::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  height: 90%;
+  opacity: 0;                /* 初始隐藏 */
+  transition: opacity 0.5s ease;
+}
+
+/* 悬停时显示笑脸 */
+.d:hover::after {
+  opacity: 1;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><!-- 两个眼睛 --><circle cx='22' cy='24' r='4' fill='yellow'/><circle cx='42' cy='24' r='4' fill='yellow'/> <!-- 嘴巴 --><path d='M20 38 C28 48, 36 48, 44 38' stroke='yellow' stroke-width='3' fill='transparent'/></svg>") no-repeat center/contain;
+}
+
+
+/* 悬停效果 */
+.d:hover {
+  background-color: hotpink;
+  border-width: 30px;   /* 外圈变大 */
+}
+
+.d:hover {
+  width: 100px;         /* 保持整体不变 */
+  height: 100px;
+}
+
+.d:hover::after {
+  opacity: 1;           /* 显示笑脸 */
+}
+
+.d:hover::after {
+  opacity: 1;
+  text-shadow: 
+  0 0 20px rgba(255,255,255,0.9),
+  0 0 30px rgba(200,200,255,0.7);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+.e{
+	border:18px solid pink;
+	background-color: hotpink;
+	width: 100px;
+	height: 100px;
+ border-radius: 50%;
+	position:absolute;
+ left: 15vw; 
+ top: 20vh; 
+}
+
+
+
+
+.f{
+	border:10px solid pink;
+	background-color: hotpink;
+	width: 100px;
+	height: 100px;
+	border-radius: 50%;
+	position:absolute;
+ left: 3vw; 
+ top: 35vh; 	
+}
+
+
+
+.g{
+	border:19px solid pink;
+	background-color: hotpink;
+	width: 100px;
+	height: 100px;
+	border-radius: 50%;
+	position:absolute;
+	left: 50vw; 
+ top: 70vh; 
+}
+
+
+
+
+.h{
+	border:5px solid blueviolet;
+	background-color: green;
+	width: 70px;
+	height: 70px;
+	border-radius: 50%;
+	position:absolute;
+	margin: 0px;
+	left: 60vw; 
+  top: 10vh; 
+  transition: all 0.3s ease;
+}
+.h::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  height: 90%;
+  opacity: 0;                /* 初始隐藏 */
+  transition: opacity 0.5s ease;
+}
+
+/* 悬停时显示笑脸 */
+.h:hover::after {
+  opacity: 1;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><!-- 两个眼睛 --><circle cx='22' cy='24' r='4' fill='yellow'/><circle cx='42' cy='24' r='4' fill='yellow'/> <!-- 嘴巴 --><path d='M20 38 C28 48, 36 48, 44 38' stroke='yellow' stroke-width='3' fill='transparent'/></svg>") no-repeat center/contain;
+}
+
+
+/* 悬停效果 */
+.h:hover {
+  background-color: green;
+  border-width: 8px;   /* 外圈变大 */
+}
+
+.h:hover {
+  width: 80px;         /* 保持整体不变 */
+  height: 80px;
+}
+
+.h:hover::after {
+  opacity: 1;           /* 显示笑脸 */
+}
+
+.h:hover::after {
+  opacity: 1;
+  text-shadow: 
+  0 0 20px rgba(255,255,255,0.9),
+  0 0 30px rgba(200,200,255,0.7);
+}
+
+
+
+
+
+
+
+
+
+.i{
+	border:5px solid blueviolet;
+	background-color: green;
+	width: 70px;
+	height: 70px;
+	border-radius: 50%;
+	position:absolute;
+	margin: 0px;
+	left: 70vw; 
+  top: 20vh; 
+  transition: all 0.3s ease;
+}
+.i::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  height: 90%;
+  opacity: 0;                /* 初始隐藏 */
+  transition: opacity 0.5s ease;
+}
+
+/* 悬停时显示笑脸 */
+.i:hover::after {
+  opacity: 1;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><!-- 两个眼睛 --><circle cx='22' cy='24' r='4' fill='yellow'/><circle cx='42' cy='24' r='4' fill='yellow'/> <!-- 嘴巴 --><path d='M20 38 C28 48, 36 48, 44 38' stroke='yellow' stroke-width='3' fill='transparent'/></svg>") no-repeat center/contain;
+}
+
+
+/* 悬停效果 */
+.i:hover {
+  background-color: green;
+  border-width: 8px;   /* 外圈变大 */
+}
+
+.i:hover {
+  width: 80px;         /* 保持整体不变 */
+  height: 80px;
+}
+
+.i:hover::after {
+  opacity: 1;           /* 显示笑脸 */
+}
+
+.i:hover::after {
+  opacity: 1;
+  text-shadow: 
+  0 0 20px rgba(255,255,255,0.9),
+  0 0 30px rgba(200,200,255,0.7);
+}
+
+
+
+
+
+
+
+
+.j{
+	border:5px solid blueviolet;
+	background-color: green;
+	width: 70px;
+	height: 70px;
+	border-radius: 50%;
+	position:absolute;
+	margin: 0px;
+	left: 80vw; 
+  top: 5vh; 
+  transition: all 0.3s ease;
+}
+.j::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  height: 90%;
+  opacity: 0;                /* 初始隐藏 */
+  transition: opacity 0.5s ease;
+}
+
+/* 悬停时显示笑脸 */
+.j:hover::after {
+  opacity: 1;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><!-- 两个眼睛 --><circle cx='22' cy='24' r='4' fill='yellow'/><circle cx='42' cy='24' r='4' fill='yellow'/> <!-- 嘴巴 --><path d='M20 38 C28 48, 36 48, 44 38' stroke='yellow' stroke-width='3' fill='transparent'/></svg>") no-repeat center/contain;
+}
+
+
+/* 悬停效果 */
+.j:hover {
+  background-color: green;
+  border-width: 8px;   /* 外圈变大 */
+}
+
+.j:hover {
+  width: 80px;         /* 保持整体不变 */
+  height: 80px;
+}
+
+.j:hover::after {
+  opacity: 1;           /* 显示笑脸 */
+}
+
+.j:hover::after {
+  opacity: 1;
+  text-shadow: 
+  0 0 20px rgba(255,255,255,0.9),
+  0 0 30px rgba(200,200,255,0.7);
+}
+
+
+
+
+
+
+
+
+
+
+.k{
+	border:5px solid blueviolet;
+	background-color: green;
+	width: 70px;
+	height: 70px;
+	border-radius: 50%;
+	position:absolute;
+	margin: 0px;
+	left: 90vw; 
+ top: 90vh; 
+}
+.l{
+	border:5px solid blueviolet;
+	background-color: green;
+	width: 70px;
+	height: 70px;
+	border-radius: 50%;
+	position:absolute;
+	margin: 0px;
+	left: 80vw; 
+ top: 75vh; 
+}
+.m{
+	border:5px solid blueviolet;
+	background-color: green;
+	width: 70px;
+	height: 70px;
+	border-radius: 50%;
+	position:absolute;
+	left: 59vw; 
+ top: 55vh; 
+}
+.n{
+	border:5px solid blueviolet;
+	background-color: green;
+	width: 70px;
+	height: 70px;
+	border-radius: 50%;
+	position:absolute;
+	left: 22vw; 
+ top: 60vh; 
+}
+.o{
+	border:5px solid blueviolet;
+	background-color: green;
+	width: 70px;
+	height: 70px;
+	border-radius: 50%;
+	position:absolute;
+	left: 10vw; 
+ top: 10vh; 
+}
+
+
+
+
+
+.p{
+	border:2px solid blueviolet;
+	background-color: aliceblue;
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	position:absolute;
+	left: 24vw; 
+  top: 40vh; 
+  transition: all 0.3s ease;
+}
+.p::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  height: 90%;
+  opacity: 0;                /* 初始隐藏 */
+  transition: opacity 0.5s ease;
+}
+
+/* 悬停时显示笑脸 */
+.p:hover::after {
+  opacity: 1;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><!-- 两个眼睛 --><circle cx='22' cy='24' r='4' fill='green'/><circle cx='42' cy='24' r='4' fill='green'/> <!-- 嘴巴 --><path d='M20 38 C28 48, 36 48, 44 38' stroke='green' stroke-width='3' fill='transparent'/></svg>") no-repeat center/contain;
+  transform: translate(-50%,-50%) scale(1.3);
+  transform-origin: center center;
+}
+
+/* 悬停效果 */
+.p:hover {
+  background-color: aliceblue;
+  border-width: 6px;   /* 外圈变大 */
+}
+
+.p:hover {
+  width: 40px;         /* 保持整体不变 */
+  height: 40px;
+}
+
+
+
+
+
+
+
+
+
+
+
+.q{
+	border:2px solid blueviolet;
+	background-color: aliceblue;
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	position:absolute;
+	left: 66vw; 
+  top: 20vh; 
+  transition: all 0.3s ease;
+}
+.q::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  height: 90%;
+  opacity: 0;                /* 初始隐藏 */
+  transition: opacity 0.5s ease;
+}
+
+/* 悬停时显示笑脸 */
+.q:hover::after {
+  opacity: 1;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><!-- 两个眼睛 --><circle cx='22' cy='24' r='4' fill='green'/><circle cx='42' cy='24' r='4' fill='green'/> <!-- 嘴巴 --><path d='M20 38 C28 48, 36 48, 44 38' stroke='green' stroke-width='3' fill='transparent'/></svg>") no-repeat center/contain;
+  transform: translate(-50%,-50%) scale(1.3);
+  transform-origin: center center;
+}
+
+/* 悬停效果 */
+.q:hover {
+  background-color: aliceblue;
+  border-width: 6px;   /* 外圈变大 */
+}
+
+.q:hover {
+  width: 40px;         /* 保持整体不变 */
+  height: 40px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.x{
+	border:2px solid blueviolet;
+	background-color: aliceblue;
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	position:absolute;
+	left: 50vw; 
+ top: 90vh; 
+}
+.y{
+	border:2px solid blueviolet;
+	background-color: aliceblue;
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	position:absolute;
+	left: 70vw; 
+ top: 80vh; 
+}
+.z{
+	border:2px solid blueviolet;
+	background-color: aliceblue;
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	position:absolute;
+	margin: 0px;
+left: 90vw; 
+ top: 40vh; 
+}

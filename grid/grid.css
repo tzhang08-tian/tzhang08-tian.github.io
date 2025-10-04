@@ -1,0 +1,21 @@
+body {
+  font-family: sans-serif;
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+}
+
+#controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#pattern {
+  width: 500px;
+  height: 500px;
+  background-color: white;
+  background-image: 
+    repeating-linear-gradient(to right, black 0 var(--line-thickness), transparent var(--line-thickness) var(--cell-size)),
+    repeating-linear-gradient(to bottom, black 0 var(--line-thickness), transparent var(--line-thickness) var(--cell-size));
+}

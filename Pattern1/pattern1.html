@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>～Pattern1～</title>
+
+  <style>
+    body {
+      background-color: white;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .box {
+      width: 50px;
+      height: 50px;
+      margin: 5px;
+      border-radius: 50px;
+      background-color: skyblue;
+      transition: 0.3s;
+    }
+  </style>
+</head>
+
+<body>
+  <script>
+      for (let i = 0; i < 30; i++) {
+      const box = document.createElement("div");
+      box.classList.add("box");
+
+  
+      if (i % 2 === 0) {
+        box.style.backgroundColor = "green";  
+      } else {
+        box.style.backgroundColor = "skyblue"; 
+      }
+
+  
+      box.style.width = 20 + i + 3 + "px";
+      box.style.height = 20 + i + 6 + "px";
+
+      
+      document.body.appendChild(box);
+    }
+
+    //  notation
+    // - using "for" circulate generate 30 square
+    // - using "if/else" condition to change color
+    // - using "style" change the size
+  </script>
+</body>
+</html>

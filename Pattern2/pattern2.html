@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+
+<head>
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>～Pattern2～</title>
+
+  <style>
+    
+    body {
+      margin: 0;
+      background-color: dimgrey;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      display: grid;
+      grid-auto-rows: 40px;
+      gap: 17px;
+      justify-content: center;
+      align-content: center;
+      width: 100vw;
+      height: 100vh;
+      grid-template-columns: repeat(25, 40px);
+
+    }
+
+    .dot {
+      width: 40px;
+      height: 40px;
+      border-radius: 25%;
+      background-color: dodgerblue;
+      transition: 0.3s;
+    }
+
+    .dot:hover {
+      transform: scale(1.3);
+      background-color: hotpink;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container" id="grid"></div>
+
+  <script>
+
+    const cols = 25;  
+
+    const container = document.getElementById("grid");
+
+    const rows = 12;  
+     
+
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        const dot = document.createElement("div");
+        dot.classList.add("dot");
+
+        if ((x + y) % 3 === 0) {
+          dot.style.backgroundColor = "hotpink";
+        } else {
+          dot.style.backgroundColor = "white";
+        }
+
+        dot.style.opacity = 0.7 + Math.sin((x + y) * 0.2) * 0.2;
+
+        container.appendChild(dot);
+      }
+    }
+
+    // notation
+    // - "y" and "x" circulate（column and row）
+    // - pattern made by rounded square
+    // - "if" condition makes colors
+    // - Grid makes the whole pattern
+  </script>
+</body>
+</html>

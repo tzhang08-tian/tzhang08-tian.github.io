@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>～pattern3~</title>
+
+  <style>
+    body {
+      background-color: lightyellow;
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      font-family: "Brush Script MT", "Lucida Handwriting", cursive;
+    }
+
+    .container {
+      position: relative;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+    }
+
+    .num {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 18px;
+      transition: 0.3s;
+    }
+
+    .num:hover {
+      transform: scale(1.4);
+      box-shadow: 0 0 10px rgba(255,255,255,0.2);
+      background-color: hotpink !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container" id="circle"></div>
+
+  <script>
+  
+    const container = document.getElementById("circle");
+    const total = 28;        
+    const radius = 230;       
+    const centerX = 200;   
+    const centerY = 200; 
+
+    for (let i = 0; i < total; i++) {
+      const div = document.createElement("div");
+      div.classList.add("num");
+      div.textContent = i + 1;
+
+     
+      const angle = (i / total) * 2 * Math.PI;
+
+      const x = centerX + radius * Math.cos(angle);
+      const y = centerY + radius * Math.sin(angle);
+
+     
+      div.style.left = x - 25 + "px";
+      div.style.top = y - 25 + "px";
+
+      
+      if (i % 2 === 0) {
+        div.style.backgroundColor = "black";
+      } else {
+        div.style.backgroundColor = "royalblue";
+      }
+
+     
+      container.appendChild(div);
+    }
+
+    // notation
+    // - "for" circulate the numbers
+    // - using cos/sin to calculate the position
+    // - "if" color change
+    // - number pattern
+  </script>
+</body>
+</html>

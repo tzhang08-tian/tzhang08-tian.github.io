@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title></title>
+<style>
+  :root { --bg:#0f1115; --card:#151923; --border:#232838; --white:#ffffff; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--white);font-family:system-ui;-webkit-font-smoothing:antialiased;}
+  main{max-width:1100px;margin:60px auto;padding:0 16px;display:flex;flex-direction:column;gap:80px;}
+  button{width:60px;height:60px;background:#1a2030;border:1px solid var(--border);border-radius:0;cursor:pointer;align-self:center;}
+  button:hover{border-color:#3a425e;}
+  .layer{display:flex;flex-direction:column;align-items:center;gap:24px;}
+  .tracks{display:flex;flex-direction:column;gap:40px;width:100%;}
+  .bar{position:relative;width:100%;height:50px;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--white);}
+  .bar div{position:absolute;top:0;left:0;height:100%;border-radius:0;}
+  .rowbar{display:flex;width:100%;gap:8px;}
+  .tile{flex:1;height:40px;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--white);border:1px solid var(--border);}
+</style>
+</head>
+<body>
+<main>
+  <div class="layer">
+    <button id="btnStage1"></button>
+    <div id="tracks" class="tracks"></div>
+  </div>
+  <div class="layer">
+    <button id="btnPickOnePerTrack"></button>
+    <div id="grid8" class="tracks"></div>
+  </div>
+  <div class="layer">
+    <button id="btnSplit6"></button>
+    <div id="splitRows" class="tracks"></div>
+  </div>
+  <div class="layer">
+    <button id="btnPick1of6"></button>
+  </div>
+  <div class="layer">
+    <button id="btnComposeFinal"></button>
+    <div id="finals" class="tracks"></div>
+  </div>
+</main>
+
+<script>
+const N = 4;
+const SEG30 = 30;
+const DUR_RANGE = [120, 360];
+const baseColors = ['#74c0fc','#ffd43b','#8ce99a','#ff6b6b'];
+const segColors  = ['#4263eb','#f76707','#20c997','#e64980','#fab005','#4dabf7','#51cf66','#845ef7'];
+const highlightColors = ['#ffffff','#ffd43b','#ff6b6b','#91a7ff','#66d9e8','#63e6be','#ffa8a8','#b197fc'];
+const rand=(a,b)=>Math.random()*(b-a)+a;
+const randi=(a,b)=>Math.floor(rand(a,b));
+const fmt=sec=>{sec=Math.max(0,sec|0);const m=(sec/60)|0;const s=sec%60|0;return `${m}:${String(s).padStart(2,'0')}`;}
+
+let tracks=[],pickIdxs=[null,null,null,null],pieces=[null,null,null,null],pick6=[null,null,null,null];
+
+const $tracks=document.getElementById('tracks');
+const $grid8=document.getElementById('grid8');
+const $splitRows=document.getElementById('splitRows');
+const $finals=document.getElementById('finals');
+
+function genTrack(i){
+  const dur=randi(DUR_RANGE[0],DUR_RANGE[1]+1);
+  return {dur,baseColor:baseColors[i%baseColors.length],segs:[null,null]};
+}
+
+function stage1(){
+  tracks=Array.from({length:N},(_,i)=>genTrack(i));
+  tracks.forEach(t=>{
+    for(let k=0;k<2;k++){
+      const d=t.dur;let start=0;
+      if(d>SEG30){const raw=rand(0,d);const maxStart=d-SEG30;start=Math.min(raw,maxStart);}
+      start=Math.max(0,Math.floor(start));
+      const end=Math.min(d,start+SEG30);
+      t.segs[k]={start,end,color:segColors[randi(0,segColors.length)]};
+    }
+  });
+  pickIdxs=[null,null,null,null];
+  pieces=[null,null,null,null];
+  pick6=[null,null,null,null];
+  renderTimelines();
+}
+
+function renderTimelines(){
+  $tracks.innerHTML='';
+  tracks.forEach((t)=>{
+    const bar=document.createElement('div');
+    bar.className='bar';
+    const bg=document.createElement('div');
+    bg.style.background=t.baseColor;
+    bg.style.width='100%';
+    bar.appendChild(bg);
+    t.segs.forEach(seg=>{
+      const segEl=document.createElement('div');
+      segEl.style.position='absolute';
+      segEl.style.left=`${(seg.start/t.dur)*100}%`;
+      segEl.style.width=`${((seg.end-seg.start)/t.dur)*100}%`;
+      segEl.style.background=seg.color;
+      bar.appendChild(segEl);
+      const label=document.createElement('span');
+      label.textContent=`${fmt(seg.start)} → ${fmt(seg.end)}`;
+      bar.appendChild(label);
+    });
+    $tracks.appendChild(bar);
+  });
+}
+
+function randomPickOnePerTrack(){
+  pickIdxs=tracks.map(()=>Math.random()<0.5?0:1);
+  $grid8.innerHTML='';
+  tracks.forEach((t,i)=>{
+    const seg=t.segs[pickIdxs[i]];
+    const bar=document.createElement('div');
+    bar.className='bar';
+    const segEl=document.createElement('div');
+    segEl.style.background=seg.color;
+    segEl.style.width='100%';
+    bar.appendChild(segEl);
+    const label=document.createElement('span');
+    label.textContent=`${fmt(seg.start)} → ${fmt(seg.end)}`;
+    bar.appendChild(label);
+    $grid8.appendChild(bar);
+  });
+}
+
+function splitSelectedInto6(){
+  if(pickIdxs.some(x=>x===null))return;
+  pieces=tracks.map((t,i)=>{
+    const seg=t.segs[pickIdxs[i]];
+    return Array.from({length:6},(_,j)=>({idx:j+1,color:seg.color}));
+  });
+  pick6=[null,null,null,null];
+  renderSplitRows();
+}
+
+function randomPick1of6(){
+  if(!pieces[0])return;
+  pick6=pieces.map(()=>randi(0,6));
+  renderSplitRows();
+}
+
+function renderSplitRows(){
+  $splitRows.innerHTML='';
+  pieces.forEach((arr,i)=>{
+    const row=document.createElement('div');
+    row.className='rowbar';
+    if(!arr){$splitRows.appendChild(row);return;}
+    arr.forEach((piece,j)=>{
+      const tile=document.createElement('div');
+      tile.className='tile';
+      tile.style.background=(pick6[i]===j)?highlightColors[(i*2+j)%highlightColors.length]:piece.color;
+      tile.textContent=piece.idx;
+      row.appendChild(tile);
+    });
+    $splitRows.appendChild(row);
+  });
+}
+
+function composeFinal(){
+  if(pick6.some(x=>x===null))return;
+  const chosen=pieces.map((arr,i)=>({color:highlightColors[(i*2+pick6[i])%highlightColors.length],pieceNo:pick6[i]+1}));
+  const arranged=chosen.sort(()=>Math.random()-0.5);
+  const row=document.createElement('div');
+  row.className='rowbar';
+  arranged.forEach(item=>{
+    const tile=document.createElement('div');
+    tile.className='tile';
+    tile.style.background=item.color;
+    tile.textContent=item.pieceNo;
+    row.appendChild(tile);
+  });
+  $finals.prepend(row);
+}
+
+document.getElementById('btnStage1').onclick=stage1;
+document.getElementById('btnPickOnePerTrack').onclick=randomPickOnePerTrack;
+document.getElementById('btnSplit6').onclick=splitSelectedInto6;
+document.getElementById('btnPick1of6').onclick=randomPick1of6;
+document.getElementById('btnComposeFinal').onclick=composeFinal;
+</script>
+</body>
+</html>
+

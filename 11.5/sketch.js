@@ -1,22 +1,29 @@
 const W = 700, H = 450;
 let inset = 90;              // 矩形内口子
 let balls = [];
-const BALL_COUNT = 10;
+const BALL_COUNT = 9;
+
+
 
 // 波纹参数
-const RIPPLE_RISE_FRAMES = 15;
-const RIPPLE_DECAY_FRAMES = 70;
-const RIPPLE_DELAY_FRAMES = 3;
-const FREQ_START = 12.0;
-const FREQ_END   = 4.0;
-const AMP_MAX    = 10.0;
-const NOISE_SCALE = 0.6;
+const RIPPLE_RISE_FRAMES = 30;
+const RIPPLE_DECAY_FRAMES = 60;
+const RIPPLE_DELAY_FRAMES = 6;
+const FREQ_START = 60.0;
+const FREQ_END   = 0.0;
+const AMP_MAX    = 9.0;
+const NOISE_SCALE = 0.8;
+
+
 
 function setup() {
   createCanvas(W, H);
   noStroke();
-  initBalls();               // ✅ 生成小球
+  initBalls();               // 生成小球
 }
+
+
+
 
 function draw() {
   background(50);
@@ -26,6 +33,9 @@ function draw() {
     drawBall(b);
   }
 }
+
+
+
 
 /* ---------- Tank ---------- */
 function drawTank() {
@@ -44,6 +54,9 @@ function drawTank() {
   fill(colTop);    quad(0,0,   W,0,    x2,y2, x1,y1);
 }
 
+
+
+
 /* ---------- Helpers: 反弹 + 波纹 ---------- */
 // 小写 reflect（统一大小写）
 const reflect = (p, v, lo, hi) => {
@@ -61,7 +74,7 @@ const rippleReset = r => Object.assign(r, {
 const rippleStep = r => {
   if (!r.active) { r._ampNow = 0; return; }
   r.life++;
-  let amp = 0;                         // ✅ 用同一个小写 amp
+  let amp = 0;                         // 用同一个小写 amp
   if (r.life > r.delay) {
     const t = r.life - r.delay;
     const rise  = constrain(t / RIPPLE_RISE_FRAMES, 0, 1);
@@ -74,6 +87,12 @@ const rippleStep = r => {
   }
   r._ampNow = amp;
 };
+
+
+
+
+
+
 
 /* ---------- Balls ---------- */
 function initBalls() {
@@ -94,6 +113,10 @@ function initBalls() {
   }
 }
 
+
+
+
+
 function updateBall(b) {
   b.x += b.vx; b.y += b.vy;
 
@@ -106,6 +129,11 @@ function updateBall(b) {
 
   rippleStep(b.ripple);
 }
+
+
+
+
+
 
 function drawBall(b) {
   push(); translate(b.x, b.y); fill(b.shade); noStroke();
@@ -127,6 +155,11 @@ function drawBall(b) {
   }
   pop();
 }
+
+
+
+
+
 
 /* ---------- Easing ---------- */
 function easeOutQuad(t){ return 1 - (1 - t) * (1 - t); }

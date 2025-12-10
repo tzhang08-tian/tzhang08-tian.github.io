@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<!--
+        _ __ ___  ___ _ __   ___  _ __  ___ ___   _____
+        | '__/ _ \/ __| '_ \ / _ \| '_ \/ __| \ \ / / _ \
+        | | |  __/\__ \ |_) | (_) | | | \__ \ |\ V /  __/
+        |_|  \___||___/ .__/ \___/|_| |_|___/_| \_/ \___|
+                    | |
+                    |_|
+    Media Query Relay in Intro to Computation, Fall 2025.
+    Team 3: Victoria Neyman, Tianyu	Zhang, York Mgbejume, Lulu Zhai
+
+-->
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Intro to Computation Fall 2025 — Media Query Relay</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width">
+    <style>
+        @media screen and (min-width: 1322px) {
+            /* Lulu */
+        }
+
+        @media screen and (min-width: 1095px) and (max-width: 1322px) {
+            /*York*/
+           
+            body{
+                background-color: rgb(128, 255, 255);
+            }
+            #div4.cube {
+                position: absolute;  
+                width: 60vw;                        
+                height: 30vw;                       
+                top: 50%;                           
+                left: 50%; 
+                border: 2px solid hotpink;                         
+                transform-style: preserve-3d;      
+                transform: translate(-50%, -50%) rotateX(-10deg) rotateY(30deg);  
+
+                animation: rectangle-rotate 6s infinite linear;  
+                background: rgb(56, 95, 215);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5);  
+                transition: all 1s ease-in-out;     
+                border-radius: 8px;                 
+            }
+            @keyframes rectangle-rotate {
+                0% { transform: translate(-50%, -50%) rotateX(-10deg) rotateY(0deg); }
+                100% { transform: translate(-50%, -50%) rotateX(-10deg) rotateY(360deg); }
+            }
+        }
+        @media screen and (min-width: 867px) and (max-width: 1095px) {
+            /* Tianyu */
+            body{
+                background-color: rgb(128, 255, 255);
+            }
+
+             #div4.cube {
+        position: absolute;
+        width: 40vw;
+        height: 40vw;
+        top: 50%;
+        left: 50%;
+        transform-style: preserve-3d;
+        transform: translate(-50%, -50%) rotateX(-20deg) rotateY(20deg);
+        animation: cube-rotate 6s infinite linear;
+    }
+
+ /* 悬停时给一点轻微反馈 */
+            #div4:hover {
+                transform: translate(-50%, -50%) scale(1.05);
+                transition: transform 0.2s;
+    }
+
+           .cube .face {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: rgb(56, 95, 215);
+        opacity: 0.9;
+        border: 2px solid hotpink;
+    }
+
+    /* 前 */
+    .cube .front {
+        transform: translateZ(20vw);
+    }
+    /* 后 */
+    .cube .back {
+        transform: rotateY(180deg) translateZ(20vw);
+    }
+    /* 左 */
+    .cube .left {
+        transform: rotateY(-90deg) translateZ(20vw);
+    }
+    /* 右 */
+    .cube .right {
+        transform: rotateY(90deg) translateZ(20vw);
+    }
+    /* 上 */
+    .cube .top {
+        transform: rotateX(90deg) translateZ(20vw);
+    }
+    /* 下 */
+    .cube .bottom {
+        transform: rotateX(-90deg) translateZ(20vw);
+    }
+
+    /* 动画：立方体绕 Y 轴不断旋转 */
+    @keyframes cube-rotate {
+        from {
+            transform: translate(-50%,-50%) rotateX(-20deg) rotateY(0deg);
+        }
+        to {
+            transform: translate(-50%,-50%) rotateX(-20deg) rotateY(360deg);
+        }
+    }
+            
+
+     }
+
+        @media screen and (min-width: 640px) and (max-width: 867px) {
+            /* Victoria */
+             body {
+                background-color: #eb7e31;
+            }
+        
+            #div2 {
+                display: block;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 20vw;
+                height: 20vw;
+                padding: 10%;
+                background-color: #000000;
+                border-radius: 50%;
+                transform: translateX(-50%) translateY(-50%);
+                z-index: 2;
+                animation: circle-to-square 4s forwards, fadeIn 0.5s ease-in;
+        }
+
+          /*  @media (min-width: 860px) {
+            #div2, #div3 {
+                animation-play-state: paused;
+            }
+        } */
+
+            @keyframes fadeIn {
+                from {opacity: 0;}
+                to {opacity: 1;}
+            } 
+
+            @keyframes circle-to-square {
+                00% {
+                    background-color: #000000;
+                    border-radius: 50%;
+                    transform: translateX(-50%) translateY(-50%) rotate(45deg);
+                }
+                16% {
+                    background-color: #0b073d;
+                    border-radius: 0 50% 0 50%;
+                    transform: translateX(-50%) translateY(-50%) rotate(135deg);
+                }
+                32% {
+                    background-color: #181265;
+                    border-radius: 50% 0 50% 0;
+                    transform: translateX(-50%) translateY(-50%) rotate(180deg);
+                }
+                48% {
+                    background-color: #2b2394;
+                    border-radius: 0 0 50% 0;
+                    transform: translateX(-50%) translateY(-50%) rotate(270deg);
+                }
+
+                64% {
+                    background-color: #443bc7;
+                    border-radius: 0%;
+                    transform: translateX(-50%) translateY(-50%) rotate(404deg);
+                }
+                80% {
+                    background-color: #6259df;
+                    border-radius: 50% 0 50% 0;
+                    transform: translateX(-50%) translateY(-50%) rotate(450deg);
+                }
+
+                100% {
+                    background-color: #7067ee;
+                    border-radius: 50%;
+                    transform: translateX(-50%) translateY(-50%) rotate(540deg);
+                }
+            }
+
+            #div3 {
+                display: block;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 40vw;
+                height: 40vw;
+                padding: 10%;
+                background-color: rgb(56, 95, 215);
+                border-radius: 50%;
+                transform: translateX(-50%) translateY(-50%);
+                animation: circle-to-square 4s forwards, fadeIn 0.5s ease-in;
+                opacity: 1;
+                z-index: 1;
+            }
+        }
+        
+        @media screen and (min-width: 320px) and (max-width: 640px) {
+            /* Minkyoung */
+            body {
+                background-color: #FFF;
+            }
+
+            [id^=div] {
+                display: none;
+            }
+
+            #div1 {
+                display: block;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 10vw;
+                height: 10vw;
+                padding: 20%;
+                background-color: #000;
+                border-radius: 50%;
+                transform: translateX(-50%) translateY(-50%);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="div1"></div>
+    <div id="div2"></div>
+    <div id="div3"></div>
+
+    <div id="div4" class="cube">
+    <div class="face front"></div>
+    <div class="face back"></div>
+    <div class="face left"></div>
+    <div class="face right"></div>
+    <div class="face top"></div>
+    <div class="face bottom"></div>
+</div>
+
+    <div id="div5"></div>
+    <div id="div6"></div>
+    <div id="div7"></div>
+    <div id="div8"></div>
+    <div id="div9"></div>
+    <div id="div10"></div>
+    <div id="div11"></div>
+    <div id="div12"></div>
+    <div id="div13"></div>
+    <div id="div14"></div>
+    <div id="div15"></div>
+    <div id="div16"></div>
+    <div id="div17"></div>
+    <div id="div18"></div>
+    <div id="div19"></div>
+    <div id="div20"></div>
+</body>
+
+</html>

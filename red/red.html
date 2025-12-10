@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Red Foliage Particle Effect</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000; /* 背景设为黑色以匹配图片氛围 */
+        }
+        canvas {
+            display: block;
+        }
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff3333;
+            font-family: sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">Loading image & generating particles...</div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        let scene, camera, renderer, particles;
+        let originalPositions, currentPositions;
+        const mouse = new THREE.Vector2(-9999, -9999); // 初始化在屏幕外
+        const canvasContainer = document.body;
+        let rotationAngle = 0; // 追踪旋转角度
+        let isRotating = true; // 标记是否还在旋转
+
+        // --- 配置参数 ---
+        const IMAGE_URL = 'image_0.png'; // 确保你的图片文件名正确
+        const PARTICLE_SIZE = 2.5;         // 粒子大小
+        const SAMPLE_STEP = 4;           // 采样步长（越大粒子越少，性能越好。建议 3-6）
+        const Z_DEPTH_MULTIPLIER = 150;  // 深度倍率（控制3D效果的厚度）
+        const INTERACTION_RADIUS = 150;   // 鼠标交互半径
+        const REPULSION_STRENGTH = 2;    // 斥力强度
+        const RETURN_SPEED = 0.08;       // 粒子返回原位的速度 (0.01 - 0.5)
+
+        init();
+
+        function init() {
+            // 1. 基础场景设置
+            scene = new THREE.Scene();
+            // 使用透视相机
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 3000);
+            camera.position.z = 800; // 将相机拉远以便看到全貌
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            canvasContainer.appendChild(renderer.domElement);
+
+            // 2. 加载图像并处理数据
+            const loader = new THREE.TextureLoader();
+            loader.load(
+                IMAGE_URL,
+                function (texture) {
+                    document.getElementById('loading').style.display = 'none';
+                    processImageAndCreateParticles(texture.image);
+                    animate(); // 数据处理完后再开始动画循环
+                },
+                undefined,
+                function (err) {
+                    document.getElementById('loading').innerText = "Error loading image.";
+                    console.error('An error happened loading the image.', err);
+                }
+            );
+
+            // 3. 事件监听
+            window.addEventListener('resize', onWindowResize);
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('touchmove', onTouchMove, { passive: false });
+        }
+
+        // --- 核心：处理图像并生成粒子 ---
+        function processImageAndCreateParticles(image) {
+            const imgWidth = image.width;
+            const imgHeight = image.height;
+
+            // 创建一个临时的 canvas 来读取像素数据
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = imgWidth;
+            canvas.height = imgHeight;
+            ctx.drawImage(image, 0, 0, imgWidth, imgHeight);
+            // 获取像素数据数组 (RGBA格式)
+            const imgData = ctx.getImageData(0, 0, imgWidth, imgHeight).data;
+
+            const positions = [];
+            const colors = [];
+            
+            // 使用 BufferGeometry 来高效管理大量粒子
+            const geometry = new THREE.BufferGeometry();
+
+            // 遍历像素
+            for (let y = 0; y < imgHeight; y += SAMPLE_STEP) {
+                for (let x = 0; x < imgWidth; x += SAMPLE_STEP) {
+                    const index = (y * imgWidth + x) * 4;
+                    const r = imgData[index];
+                    const g = imgData[index + 1];
+                    const b = imgData[index + 2];
+                    const brightness = (r + g + b) / 3;
+
+                    // 阈值过滤：如果像素太黑，就不生成粒子，节省性能
+                    if (r < 20 && g < 20 && b < 20) continue;
+
+                    // 计算 3D 坐标
+                    // 将坐标中心移动到屏幕中央
+                    const posX = x - imgWidth / 2;
+                    const posY = -(y - imgHeight / 2); // WebGL Y轴向上，图片Y轴向下，所以取反
+                    // 使用红色通道值或亮度值来决定 Z 轴深度
+                    const posZ = (r / 255) * Z_DEPTH_MULTIPLIER;
+
+                    positions.push(posX, posY, posZ);
+
+                    // 设置颜色 (保持原图颜色，稍微增强一点亮度)
+                    const color = new THREE.Color(`rgb(${r},${g},${b})`);
+                    // 可以选择稍微提亮一点颜色
+                    color.multiplyScalar(1.2); 
+                    colors.push(color.r, color.g, color.b);
+                }
+            }
+
+            // 将数据绑定到几何体属性
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            
+            // 保存初始位置数据用于交互回复
+            originalPositions = new Float32Array(positions);
+            currentPositions = geometry.attributes.position.array;
+
+            // 创建粒子材质
+            const material = new THREE.PointsMaterial({
+                size: PARTICLE_SIZE,
+                vertexColors: true, // 告诉材质使用顶点颜色
+                blending: THREE.AdditiveBlending, // 发光叠加效果
+                transparent: true,
+                opacity: 0.9,
+                sizeAttenuation: true // 粒子近大远小
+            });
+
+            // 创建粒子系统并添加到场景
+            particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+        }
+
+        // --- 交互事件处理 ---
+        function onMouseMove(event) {
+            updateMouseCoords(event.clientX, event.clientY);
+        }
+        function onTouchMove(event) {
+            if(event.touches.length > 0) {
+                updateMouseCoords(event.touches[0].clientX, event.touches[0].clientY);
+            }
+        }
+
+        // 将屏幕鼠标坐标转换为 3D 世界坐标的一个近似投影
+        function updateMouseCoords(clientX, clientY) {
+            // 归一化设备坐标 (NDC) -1 到 +1
+            const ndcX = (clientX / window.innerWidth) * 2 - 1;
+            const ndcY = -(clientY / window.innerHeight) * 2 + 1;
+            
+            // 将 NDC 映射回大约的 3D 场景平面。
+            // 这个计算是为了让鼠标位置与粒子所在的平面大致对齐。
+            // 具体数值取决于相机的 FOV 和 Z位置。这是一个简化的近似值。
+            const vector = new THREE.Vector3(ndcX, ndcY, 0.5);
+            vector.unproject(camera);
+            const dir = vector.sub(camera.position).normalize();
+            const distance = -camera.position.z / dir.z;
+            const pos = camera.position.clone().add(dir.multiplyScalar(distance));
+            
+            mouse.x = pos.x;
+            mouse.y = pos.y;
+            // mouse.z 默认为 0，因为大部分粒子在 z=0 附近浮动
+        }
+
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- 动画循环 ---
+        function animate() {
+            requestAnimationFrame(animate);
+            render();
+        }
+
+        function render() {
+            if (!particles) return;
+
+            const positions = particles.geometry.attributes.position.array;
+            
+            // 遍历所有粒子进行物理计算
+            for (let i = 0; i < positions.length; i += 3) {
+                // 当前粒子坐标
+                let px = positions[i];
+                let py = positions[i + 1];
+                // let pz = positions[i + 2]; // 暂时不改变 Z 轴的斥力，只在 XY 平面推开
+
+                // 初始目标坐标
+                const ox = originalPositions[i];
+                const oy = originalPositions[i + 1];
+                const oz = originalPositions[i + 2];
+
+                // 计算粒子与鼠标的距离 (只计算 XY 平面的距离，效果更稳定)
+                const dx = mouse.x - px;
+                const dy = mouse.y - py;
+                const distSq = dx * dx + dy * dy;
+                const dist = Math.sqrt(distSq);
+
+                // --- 斥力逻辑：向周围360度方向扩散 ---
+                if (dist < INTERACTION_RADIUS) {
+                    const force = (INTERACTION_RADIUS - dist) / INTERACTION_RADIUS; // 距离越近，力越大 (0.0 - 1.0)
+                    const angle = Math.atan2(dy, dx);
+                    
+                    // 向周围360度方向推开（远离鼠标位置）
+                    const pushDistance = force * REPULSION_STRENGTH;
+                    px += Math.cos(angle) * pushDistance;
+                    py += Math.sin(angle) * pushDistance;
+                }
+
+                // --- 回复力逻辑 (简单的弹性回到原位) ---
+                positions[i]     += (ox - px) * RETURN_SPEED;
+                positions[i + 1] += (oy - py) * RETURN_SPEED;
+                positions[i + 2] += (oz - positions[i + 2]) * RETURN_SPEED;
+            }
+
+            // 告诉 Three.js 顶点位置已经更新，需要重新渲染
+            particles.geometry.attributes.position.needsUpdate = true;
+
+            // 缓慢旋转整个粒子群，增加动感
+            // 只旋转一圈（2π弧度）然后停止
+            if (isRotating) {
+                particles.rotation.y += 0.001;
+                particles.rotation.x += 0.0005;
+                rotationAngle += 0.001;
+                
+                // 当旋转达到2π（一圈）时停止旋转
+                if (rotationAngle >= Math.PI * 2) {
+                    isRotating = false;
+                    // 重置到初始位置
+                    particles.rotation.y = 0;
+                    particles.rotation.x = 0;
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

@@ -1,1 +1,888 @@
-weather/index.html
+<!doctype html>
+<html lang="en">
+
+<head>
+
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>**WEATHER**</title>
+
+
+  <style>
+    :root {
+      --pad: 14px;
+      --fg: #000;
+      --bg: #000;
+      --muted: #000;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto;
+    }
+    .corner {
+      position: fixed;
+      padding: var(--pad);
+      white-space: pre-line;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      z-index: 2; /* ensure above canvas */
+    }
+    #topLeft { top: 0; left: 0; }
+    #bottomLeft { bottom: 0; left: 0; }
+    .label { color: var(--muted); } /* now black via --muted */
+    #status {
+      position: fixed;
+      top: 0;
+      right: 0;
+      padding: var(--pad);
+      color: var(--muted); /* now black */
+      z-index: 2; /* ensure above canvas */
+    }
+    /* New: fixed top-right dock for the capital selector (below status) */
+    #capitalDock {
+      position: fixed;
+      top: 48px;  /* adjust if overlapping with #status */
+      right: 0;
+      padding: var(--pad);
+      z-index: 2;
+      text-align: right;
+    }
+
+    /* Bottom-right image with hover scale */
+    #cornerImgBox {
+      position: absolute;
+      right: 3%;
+      bottom: 3%;
+      z-index: 3; /* above canvas/panels */
+      pointer-events: auto;
+    }
+    /* New: background square behind the image */
+    #cornerImgBox .bgSquare {
+      position: absolute;
+      inset: 0;                 /* same size as the image box */
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.5);  /* lighter and transparent */
+      /* Optional: if supported, mix with CSS variable background */
+      /* background: color-mix(in srgb, var(--bg), white 40%); opacity: 0.25; */
+      z-index: 0;
+      pointer-events: none;     /* do not block hover */
+    }
+    #cornerImgBox img {
+      width: 250px;
+      max-width: 40vw;
+      height: auto;
+      display: block;
+      border-radius: 6px;
+      transition: transform 160ms ease;
+      position: relative;
+      z-index: 1;               /* above the bgSquare */
+    }
+    #cornerImgBox:hover img {
+      transform: scale(1.06);
+    }
+
+    /* Guidance overlay */
+    #guideOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55); /* backdrop */
+      z-index: 10;                  /* above everything */
+      display: none;                /* shown on load via JS */
+      align-items: center;
+      justify-content: center;
+    }
+    #guideContent {
+      position: relative;
+      width: min(90vw, 1100px);  /* was min(70vw) */
+      height: min(85vh, 900px);  /* was min(70vh) */
+      border-radius: 12px;
+      background: rgba(30,30,30,0.3); /* slightly deeper dark box */
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #guideContent img {
+      max-width: 100%;
+      max-height: 100%;
+      display: block;
+      width: 100%;
+      height: 100%;
+      max-width: none;    /* override max- to allow filling container */
+      max-height: none;
+      object-fit: contain; /* keep aspect ratio inside the box */
+    }
+    #guideClose {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      background: rgba(255,255,255,0.12);
+      color: #000; /* was #fff */
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      cursor: pointer;
+    }
+    #guideClose:hover {
+      background: rgba(113, 110, 110, 0.1);
+    }
+
+    /* Reopen guide button (top-right) */
+    #guideReopen {
+      position: absolute;
+      top: 150px;
+      right: 50px; /* sits left of #status */
+      z-index: 11;
+      padding: 20px 20px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      color: #000; /* was #ffffff */
+      background: rgba(85, 85, 85, 0.5);
+      border: 1px solid rgb(255, 255, 255);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #guideReopen:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    /* Export screenshot button (top-right) */
+    #exportBtn {
+      position: fixed;
+      top: 8px;
+      right: calc(var(--pad) + 120px); /* place left of #status to avoid overlap */
+      z-index: 12;
+      padding: 8px 3px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      color: #000;
+      background: rgba(255,255,255,0.85);
+      border: 1px solid rgba(0,0,0,0.35);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #exportBtn:hover {
+      background: rgba(255,255,255,1);
+    }
+
+    /* Centered top buttons (smaller, parallel) */
+    #exportBtn,
+    #guideReopen {
+      position: fixed;
+      top: 8px;             /* closer to the top */
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 12;
+      /* smaller size */
+      padding: 6px 10px;    /* was larger */
+      font-size: 11px;      /* was 12–13px */
+      /* shared look */
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: #000;
+      background: rgba(255,255,255,0.85);
+      border: 1px solid rgba(0,0,0,0.35);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #exportBtn:hover,
+    #guideReopen:hover {
+      background: rgba(255,255,255,1);
+    }
+    /* Offset left/right to avoid overlap and keep parallel layout */
+    #exportBtn { transform: translateX(calc(-50% - 60px)); }
+    #guideReopen { transform: translateX(calc(-50% + 60px)); }
+
+    /* Bottom-right image with hover scale */
+    #cornerImgBox {
+      position: absolute;
+      right: 3%;
+      bottom: 3%;
+      z-index: 3; /* above canvas/panels */
+      pointer-events: auto;
+    }
+    /* New: background square behind the image */
+    #cornerImgBox .bgSquare {
+      position: absolute;
+      inset: 0;                 /* same size as the image box */
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.5);  /* lighter and transparent */
+      /* Optional: if supported, mix with CSS variable background */
+      /* background: color-mix(in srgb, var(--bg), white 40%); opacity: 0.25; */
+      z-index: 0;
+      pointer-events: none;     /* do not block hover */
+    }
+    #cornerImgBox img {
+      width: 250px;
+      max-width: 40vw;
+      height: auto;
+      display: block;
+      border-radius: 6px;
+      transition: transform 160ms ease;
+      position: relative;
+      z-index: 1;               /* above the bgSquare */
+    }
+    #cornerImgBox:hover img {
+      transform: scale(1.06);
+    }
+
+    /* Guidance overlay */
+    #guideOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55); /* backdrop */
+      z-index: 10;                  /* above everything */
+      display: none;                /* shown on load via JS */
+      align-items: center;
+      justify-content: center;
+    }
+    #guideContent {
+      position: relative;
+      width: min(90vw, 1100px);  /* was min(70vw) */
+      height: min(85vh, 900px);  /* was min(70vh) */
+      border-radius: 12px;
+      background: rgba(30,30,30,0.3); /* slightly deeper dark box */
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #guideContent img {
+      max-width: 100%;
+      max-height: 100%;
+      display: block;
+      width: 100%;
+      height: 100%;
+      max-width: none;    /* override max- to allow filling container */
+      max-height: none;
+      object-fit: contain; /* keep aspect ratio inside the box */
+    }
+    #guideClose {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      background: rgba(255,255,255,0.12);
+      color: #000; /* was #fff */
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      cursor: pointer;
+    }
+    #guideClose:hover {
+      background: rgba(113, 110, 110, 0.1);
+    }
+
+    /* Reopen guide button (top-right) */
+    #guideReopen {
+      position: absolute;
+      top: 150px;
+      right: 50px; /* sits left of #status */
+      z-index: 11;
+      padding: 20px 20px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      color: #000; /* was #ffffff */
+      background: rgba(85, 85, 85, 0.5);
+      border: 1px solid rgb(255, 255, 255);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #guideReopen:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    /* Guide pagination controls */
+    #guideControls {
+      position: absolute;
+      bottom: 10px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      pointer-events: auto;
+    }
+    #guideControls .btn {
+      padding: 6px 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      color: #000; /* was #fff */
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #guideControls .btn:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    #guidePageIndicator {
+      margin: 0 auto;
+      color: #000; /* was #fff */
+      font-size: 12px;
+      opacity: 0.8;
+    }
+  </style>
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: #000;
+    color: var(--fg); /* ensure body inherits black text */
+    font-family: monospace;
+  }
+
+  /* 整个页面：左右排布 */
+  #page {
+    display: flex;
+    height: 100vh;      /* 占满整个视窗高度 */
+  }
+
+  /* 左边信息栏 */
+  #info {
+    width: 25vw;        /* 视窗宽度的 25%，你可以改成 20/30 都行 */
+    padding: 1.5rem;
+  }
+
+  /* 右边画布区域，占满剩下所有空间 */
+  #sketch-holder {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    padding: 0;
+    display: block;
+  }
+
+  /* 让 canvas 随容器自适应缩放 */
+  #sketch-holder canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* New: make the capital selector narrower */
+  #capitalDock #capitalSelect {
+    width: 190px;     /* adjust as needed */
+    max-width: 50vw;  /* prevent overflow on very small screens */
+  }
+
+  /* Placed temperature images */
+  .placed-temp-img {
+    position: absolute;
+    width: 140px;  /* default; will be overridden per image */
+    height: auto;
+    pointer-events: none;
+    transform: translate(-50%, -50%); /* center at click */
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6));
+    transition: opacity 200ms ease;
+    opacity: 0.95;
+    z-index: 5;  /* above canvas, below overlay */
+  }
+</style>
+
+
+</head>
+
+
+<body>
+  <!-- 左上角：经纬度 + 城市 -->
+  <div id="topLeft" class="corner">
+    <p id="locationInfo"></p>
+  </div>
+
+  <!-- 左下角：温度、风速、降水 -->
+  <div id="bottomLeft" class="corner">
+    <p id="weatherInfo"></p>
+  </div>
+
+  <!-- 新增：右上角状态文本 -->
+  <div id="status"></div>
+  <button id="exportBtn" title="Export screenshot">Export</button>
+  <button id="guideReopen" title="Reopen guide">Guide</button>
+  <!-- New: capital selector dock (top-right) -->
+  <div id="capitalDock"></div>
+
+  <div id="sketch-holder"></div>
+
+  <!-- New: bottom-right image -->
+  <div id="cornerImgBox">
+    <div class="bgSquare"></div>   <!-- New background square -->
+    <img src="01.png" alt="Corner image"> <!-- Changed from 02.png to 01.png -->
+  </div>
+
+  <!-- New: guidance overlay shown on load -->
+  <div id="guideOverlay">
+    <div id="guideContent">
+      <button id="guideClose">Close</button>
+      <!-- Page-specific image is set via JS -->
+      <img id="guideImage" src="guide1.png" alt="Usage guide">
+      <div id="guideControls">
+        <button id="guidePrev" class="btn">Prev</button>
+        <div id="guidePageIndicator">1 / 2</div>
+        <button id="guideNext" class="btn">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 放在 body 最后 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.js"></script>
+  <script src="weather.js"></script>
+
+  
+  <script>
+  (async function () {
+  const elTop = document.getElementById('topLeft');
+  const elBottom = document.getElementById('bottomLeft');
+  const elStatus = document.getElementById('status');
+
+  // fallback: New York City
+
+  const FALLBACK = { lat: 40.7831, lon: -73.9712, note: 'Using fallback location (NYC)' };
+
+  // 1) Get geolocation 获取位置信息
+
+  function getPosition() {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        return resolve({ ...FALLBACK, reason: 'Geolocation not supported' });
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+        () => resolve({ ...FALLBACK, reason: 'User denied or error' }),
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+      );
+    });
+  }
+
+  // 2) Fetch weather引入天气API
+
+  async function fetchWeather(lat, lon) {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&current_weather=true&hourly=precipitation,windspeed_10m,relativehumidity_2m`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    const current = data.current_weather || {};
+    const hourly = data.hourly || {};
+    let idx = 0, best = 1e15;
+    if (hourly.time && Array.isArray(hourly.time)) {
+      const now = new Date();
+      hourly.time.forEach((t, i) => {
+        const d = new Date(t);
+        const diff = Math.abs(now - d);
+        if (diff < best) { best = diff; idx = i; }
+      });
+    }
+
+    const temperature = Number.isFinite(current.temperature) ? current.temperature : null;
+    const wind = Number.isFinite(current.windspeed) ? current.windspeed
+                : (hourly.windspeed_10m?.[idx] ?? null);
+    const precip = hourly.precipitation?.[idx] ?? 0;
+    const humidity = hourly.relativehumidity_2m?.[idx] ?? null;
+    // New: passthrough day/night flag (1=day, 0=night)
+    const is_day = current.is_day;
+
+    return { temperature, wind, precipitation: precip, humidity, is_day };
+  }
+
+    // 新增：带超时的 JSON 请求
+    async function fetchJSON(url, timeoutMs = 6000) {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort('timeout'), timeoutMs);
+      try {
+        const res = await fetch(url, { signal: ctrl.signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return await res.json();
+      } finally {
+        clearTimeout(t);
+      }
+    }
+
+    // 替换：更稳健的城市反向地理编码，含多源回退
+    async function fetchCityName(lat, lon) {
+      // 1) Open‑Meteo
+      try {
+        const om = await fetchJSON(
+          `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&language=en&count=1`
+        );
+        const r = om?.results?.[0];
+        const city =
+          r?.city || r?.name || r?.locality || r?.admin2 || r?.admin1 || r?.country;
+        if (city) return city;
+      } catch (_) {}
+
+      // 2) BigDataCloud（无密钥，CORS 友好）
+      try {
+        const bdc = await fetchJSON(
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`
+        );
+        const city =
+          bdc?.city || bdc?.locality || bdc?.principalSubdivision || bdc?.countryName;
+        if (city) return city;
+      } catch (_) {}
+
+      // 3) Nominatim（作为兜底）
+      try {
+        const nom = await fetchJSON(
+          `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=en`
+        );
+        const a = nom?.address || {};
+        const city =
+          a.city || a.town || a.village || a.hamlet || a.municipality || a.state || a.country;
+        if (city) return city;
+      } catch (_) {}
+
+      return null;
+    }
+
+    // Load all capitals (country + capital + lat/lon)
+    async function fetchCapitals() {
+      const data = await fetchJSON(
+        'https://restcountries.com/v3.1/all?fields=name,capital,capitalInfo'
+      );
+      return (data || [])
+        .filter(c => Array.isArray(c.capital) && c.capital.length > 0 && Array.isArray(c.capitalInfo?.latlng))
+        .map(c => ({
+          country: c.name?.common || '',
+          capital: c.capital[0],
+          lat: c.capitalInfo.latlng[0],
+          lon: c.capitalInfo.latlng[1]
+        }))
+        .filter(c => Number.isFinite(c.lat) && Number.isFinite(c.lon))
+        .sort((a, b) => a.country.localeCompare(b.country));
+    }
+
+    // Build top-left (City only; selector moved to top-right dock)
+    function buildTopLeftHTML(label, lon, lat) {
+      return `
+<span class="label">City:</span> ${label}
+<br><span class="label">Longitude:</span> ${lon.toFixed(4)}
+<br><span class="label">Latitude:</span> ${lat.toFixed(4)}
+`;
+    }
+
+    // New: render selector in top-right dock and handle changes
+    function renderCapitalDock(capitals, myLoc, selectedValue = '__myloc__') {
+      const dock = document.getElementById('capitalDock');
+      if (!dock) return;
+      dock.innerHTML = `
+  <div id="capitalSelector">
+    <label class="label">View capital weather:</label><br>
+    <select id="capitalSelect">
+      <option value="__myloc__">My location</option>
+      ${capitals.map((c,i)=>(
+        `<option value="cap-${i}" data-lat="${c.lat}" data-lon="${c.lon}" data-label="${c.capital}, ${c.country}">${c.country} — ${c.capital}</option>`
+      )).join('')}
+    </select>
+  </div>`;
+      const sel = dock.querySelector('#capitalSelect');
+      sel.value = selectedValue;
+
+      sel.onchange = async () => {
+        let tLat, tLon, tLabel;
+        if (sel.value === '__myloc__') {
+          tLat = myLoc.lat; tLon = myLoc.lon; tLabel = myLoc.label || 'My location';
+        } else {
+          const opt = sel.selectedOptions[0];
+          tLat = parseFloat(opt.dataset.lat);
+          tLon = parseFloat(opt.dataset.lon);
+          tLabel = opt.dataset.label || 'Capital';
+        }
+
+        const wx2 = await fetchWeather(tLat, tLon);
+        currentTemp = wx2.temperature;
+
+        // Update canvas background by temperature
+        if (Number.isFinite(wx2.temperature) && window.setSketchTemperature) {
+          window.setSketchTemperature(wx2.temperature);
+        }
+        // New: update particle speed by wind for the selected city
+        if (Number.isFinite(wx2.wind) && window.setSketchWindSpeed) {
+          window.setSketchWindSpeed(wx2.wind);
+        }
+        // New: apply humidity to line count
+        if (Number.isFinite(wx2.humidity) && window.setSketchHumidity) {
+          window.setSketchHumidity(wx2.humidity);
+        }
+
+        // New: apply day/night mode
+        if (wx2?.is_day != null && window.setSketchDayNight) {
+          window.setSketchDayNight(wx2.is_day);
+        }
+
+        // Update panels
+        elTop.innerHTML = buildTopLeftHTML(tLabel, tLon, tLat);
+        const fmt = (v, d='…') => (Number.isFinite(v) ? String(v) : d);
+        elBottom.innerHTML =
+          `<span class="label">Temperature (°C):</span> ${fmt(Math.round(wx2.temperature))}
+<br><span class="label">Wind Speed (m/s):</span> ${fmt(Math.round(wx2.wind))}
+<br><span class="label">Precipitation (mm):</span> ${formatPrecip(wx2.precipitation)}
+<br><span class="label">Humidity (%):</span> ${fmt(Math.round(wx2.humidity))}`;
+        elStatus.textContent = `Viewing: ${tLabel} • Updated: ${formatNow()}`;
+      };
+    }
+
+    // Add: format current time
+    function formatNow() {
+      return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // New: robust precipitation formatter
+    function formatPrecip(val) {
+      const n = Number(val);
+      if (!Number.isFinite(n)) return '0';
+      if (n === 0) return '0';
+      return n.toFixed(2);
+    }
+
+    // Map temperature to image filename (1.png–6.png), same ranges as background
+    function pickTempImage(tempC) {
+      const t = Number(tempC);
+      if (!Number.isFinite(t)) return '1.png'; // fallback
+      if (t < -10) return '1.png';     // deep blue
+      else if (t < 0) return '2.png';  // light blue
+      else if (t < 10) return '3.png'; // light green
+      else if (t < 20) return '4.png'; // deep green
+      else if (t < 25) return '5.png'; // yellow-green
+      else return '6.png';             // yellow / orange
+    }
+
+    // New: random width generator (px)
+    function randomPlacedImageWidth() {
+      const min = 80;   // smaller bound
+      const max = 220;  // larger bound
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // Place image at click position (with random size)
+    function placeTempImageAt(x, y) {
+      const imgName = pickTempImage(currentTemp);
+      const img = document.createElement('img');
+      img.className = 'placed-temp-img';
+      img.src = imgName;
+      img.style.left = `${x}px`;
+      img.style.top = `${y}px`;
+      // New: randomize size per placement
+      img.style.width = `${randomPlacedImageWidth()}px`;
+      document.body.appendChild(img);
+    }
+
+    // Attach click handler once
+    function setupClickPlacement() {
+      // avoid duplicating listeners
+      if (setupClickPlacement._installed) return;
+      setupClickPlacement._installed = true;
+      document.addEventListener('click', (e) => {
+        // ignore clicks on overlay to avoid confusion
+        const overlay = document.getElementById('guideOverlay');
+        if (overlay && overlay.style.display === 'flex') return;
+        placeTempImageAt(e.clientX, e.clientY);
+      });
+    }
+
+    // —— Run ——
+    elStatus.textContent = 'Requesting location…';
+    const loc = await getPosition();
+    const { lat, lon } = loc;
+
+    if (loc.reason) elStatus.textContent = `${loc.note || 'Fallback'} • ${loc.reason}`;
+    else elStatus.textContent = 'Location acquired. Fetching weather…';
+
+    const city = await fetchCityName(lat, lon);
+    const wx = await fetchWeather(lat, lon);
+    currentTemp = wx.temperature;
+    setupClickPlacement();
+
+    // Update sketch background color based on temperature
+    if (Number.isFinite(wx.temperature) && window.setSketchTemperature) {
+      window.setSketchTemperature(wx.temperature);
+    }
+    // New: update particle speed based on wind (m/s)
+    if (Number.isFinite(wx.wind) && window.setSketchWindSpeed) {
+      window.setSketchWindSpeed(wx.wind);
+    }
+    // New: initial humidity -> line count
+    if (Number.isFinite(wx.humidity) && window.setSketchHumidity) {
+      window.setSketchHumidity(wx.humidity);
+    }
+    // New: initial day/night mode
+    if (wx?.is_day != null && window.setSketchDayNight) {
+      window.setSketchDayNight(wx.is_day);
+    }
+
+    // Fetch capitals list
+    const capitals = await fetchCapitals();
+
+    // Render top-left (no selector)
+    elTop.innerHTML = buildTopLeftHTML(city || '…', lon, lat);
+    // Render selector in top-right dock
+    renderCapitalDock(capitals, { lat, lon, label: city || 'My location' });
+
+    if (!city) {
+      const s = document.getElementById('status');
+      s.textContent = (s.textContent || '') + ' • City lookup failed';
+    }
+
+    // Render bottom-left (weather)
+    const fmt = (v, d='…') => (Number.isFinite(v) ? String(v) : d);
+    elBottom.innerHTML =
+      `<span class="label">Temperature (°C):</span> ${fmt(Math.round(wx.temperature))}
+<br><span class="label">Wind Speed (m/s):</span> ${fmt(Math.round(wx.wind))}
+<br><span class="label">Precipitation (mm):</span> ${formatPrecip(wx.precipitation)}
+<br><span class="label">Humidity (%):</span> ${fmt(Math.round(wx.humidity))}`;
+
+    elStatus.textContent = `Done • Updated: ${formatNow()}`;
+  })();
+  </script>
+
+  <!-- New: show guidance overlay on load and allow dismiss -->
+  <script>
+  (function setupGuideOverlay() {
+    const overlay = document.getElementById('guideOverlay');
+    const btnClose = document.getElementById('guideClose');
+    const reopen = document.getElementById('guideReopen');
+    const img = document.getElementById('guideImage');
+    const btnPrev = document.getElementById('guidePrev');
+    const btnNext = document.getElementById('guideNext');
+    const indicator = document.getElementById('guidePageIndicator');
+
+    if (!overlay || !btnClose || !img || !btnPrev || !btnNext || !indicator) return;
+
+    // Set different images for page 1 and page 2
+    const pages = ['guide1.png', 'hua.png']; // replace with your actual filenames
+    let page = 0;
+
+    function renderPage() {
+      img.src = pages[page];
+      indicator.textContent = `${page + 1} / ${pages.length}`;
+      btnPrev.disabled = page === 0;
+      btnNext.disabled = page === pages.length - 1;
+    }
+
+    function openOverlay(resetToFirst = true) {
+      if (resetToFirst) page = 0;
+      renderPage();
+      overlay.style.display = 'flex';
+    }
+
+    function closeOverlay() {
+      overlay.style.display = 'none';
+    }
+
+    // Initial open on load
+    openOverlay(true);
+
+    // Close button
+    btnClose.onclick = closeOverlay;
+
+    // Click backdrop to close
+    overlay.onclick = (e) => {
+      if (e.target === overlay) closeOverlay();
+    };
+
+    // Reopen button
+    if (reopen) {
+      reopen.onclick = () => openOverlay(true);
+    }
+
+    // Prev/Next buttons
+    btnPrev.onclick = () => {
+      if (page > 0) { page--; renderPage(); }
+    };
+    btnNext.onclick = () => {
+      if (page < pages.length - 1) { page++; renderPage(); }
+    };
+
+    // Keyboard navigation: Left/Right arrows
+    window.addEventListener('keydown', (e) => {
+      if (overlay.style.display !== 'flex') return;
+      if (e.key === 'ArrowLeft') {
+        if (page > 0) { page--; renderPage(); }
+      } else if (e.key === 'ArrowRight') {
+        if (page < pages.length - 1) { page++; renderPage(); }
+      } else if (e.key === 'Escape') {
+        closeOverlay();
+      }
+    });
+  })();
+
+  // Export screenshot handler
+  (function setupExportButton() {
+    const btn = document.getElementById('exportBtn');
+    if (!btn) return;
+    btn.onclick = () => {
+      try {
+        // Prefer p5's saveCanvas with the global cnv from weather.js
+        if (window.saveCanvas && window.cnv) {
+          window.saveCanvas(window.cnv, 'weather-snapshot', 'png');
+          return;
+        }
+        // Fallback: use the first canvas in #sketch-holder
+        const holder = document.getElementById('sketch-holder');
+        const cvs = holder ? holder.querySelector('canvas') : document.querySelector('canvas');
+        if (cvs) {
+          const link = document.createElement('a');
+          link.download = 'weather-snapshot.png';
+          link.href = cvs.toDataURL('image/png');
+          link.click();
+        }
+      } catch (e) {
+        console.error('Export failed:', e);
+      }
+    };
+  })();
+  </script>
+
+  <style>
+    /* Final: enforce small, parallel top-center buttons */
+    body #exportBtn,
+    body #guideReopen {
+      position: fixed;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 12;
+      /* enforce smaller size */
+      padding: 4px 8px !important;   /* override earlier padding */
+      font-size: 10px !important;    /* override earlier font-size */
+      line-height: 1 !important;
+      /* shared look */
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: #000;
+      background: rgba(255,255,255,0.85);
+      border: 1px solid rgba(0,0,0,0.35);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    body #exportBtn:hover,
+    body #guideReopen:hover {
+      background: rgba(255,255,255,1);
+    }
+    /* Offset left/right to avoid overlap and keep parallel layout */
+    body #exportBtn { transform: translateX(calc(-50% - 60px)); }
+    body #guideReopen { transform: translateX(calc(-50% + 60px)); }
+
+    /* Final: enforce smaller widths for top-center buttons */
+    body #exportBtn,
+    body #guideReopen {
+      width: 80px !important;    /* shrink width */
+      padding: 4px 6px !important; /* keep compact */
+      font-size: 10px !important;
+    }
+    /* Keep parallel offset */
+    body #exportBtn { transform: translateX(calc(-50% - 60px)); }
+    body #guideReopen { transform: translateX(calc(-50% + 60px)); }
+  </style>
+</body>
+</html>

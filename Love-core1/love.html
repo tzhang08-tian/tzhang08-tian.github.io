@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>四屏显示 - p5.js</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #ffffff;
+            font-family: Arial, sans-serif;
+            padding: 0;
+            margin: 0;
+            position: relative;
+        }
+        
+        .container {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 60px;
+            font-size: 2.5em;
+        }
+        
+        .screens-grid {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+        }
+        
+        .monitor {
+            display: none; /* 隐藏包装层，让框框直接相对于 .screens-grid 定位 */
+        }
+        
+        .monitor-frame {
+            
+            border-radius: 4px;
+            box-shadow: none;
+            background-color: transparent;
+            overflow: hidden;
+            position: absolute; /* 绝对定位（相对于 .screens-grid） */
+            box-sizing: border-box;
+        }
+        
+        .monitor-stand {
+            width: 80px;
+            height: 20px;
+            background-color: #333;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .monitor-label {
+            font-size: 16px;
+            color: #666;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 1200px) {
+            .screens-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+            
+            .monitor-frame {
+                width: 100% !important;
+                max-width: 100%;
+                height: auto;
+            }
+        }
+        /* Per-sketch desired sizes (绝对定位：top = 距顶部百分比, left = 距左边百分比) */
+        #p5-1 { width: 40%; height: 50%; top: 3%; left: 10%; } /* 屏幕 1：距顶部 5%，距左边 5% */
+        #p5-2 { width: 27%; height: 87%; top: 8%; left: 70%; } /* 屏幕 2：距顶部 5%，距左边 52% */
+        #p5-3 { width: 15%; height: 26%; top: 65%; left: 5%; } /* 屏幕 3：距顶部 58%，距左边 5% */
+        #p5-4 { width: 44%; height: 36%; top: 62%; left: 29%; } /* 屏幕 4：距顶部 58%，距左边 52% */
+        
+        /* 雨效果 canvas 覆盖整个页面 */
+        #rain-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* 让雨不阻挡下面元素的交互 */
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="screens-grid">
+            <!-- 屏幕 1 -->
+            <div class="monitor-frame" id="p5-1"></div>
+            
+            <!-- 屏幕 2 -->
+            <div class="monitor-frame" id="p5-2"></div>
+            
+            <!-- 屏幕 3 -->
+            <div class="monitor-frame" id="p5-3"></div>
+            
+            <!-- 屏幕 4 -->
+            <div class="monitor-frame" id="p5-4"></div>
+        </div>
+    </div>
+    
+    <!-- 雨效果 canvas -->
+    <canvas id="rain-canvas"></canvas>
+
+    <!-- 导入你的四个p5.js文件（已转换为实例模式） -->
+    <script src="sketch1.js"></script>
+    <script src="sketch2.js"></script>
+    <script src="sketch3.js"></script>
+    <script src="sketch4.js"></script>
+    
+    <!-- 雨效果脚本 -->
+    <script>
+        const canvas = document.getElementById('rain-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 设置 canvas 大小
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // 雨滴对象 - 极简设计
+        class Raindrop {
+            constructor(size) {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height - canvas.height;
+                this.speedY = Math.random() * 2 + 5;
+                // 30% 的雨滴偏透明（0.2-0.5），其余为较高不透明度（0.6-1.0）
+                if (Math.random() < 0.3) {
+                    this.opacity = Math.random() * 0.3 + 0.2; // 0.2 - 0.5
+                } else {
+                    this.opacity = Math.random() * 0.4 + 0.6; // 0.6 - 1.0
+                }
+                this.size = size;
+            }
+            
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = -10;
+                this.speedY = Math.random() * 2 + 5;
+                if (Math.random() < 0.3) {
+                    this.opacity = Math.random() * 0.3 + 0.2;
+                } else {
+                    this.opacity = Math.random() * 0.4 + 0.6;
+                }
+            }
+            
+            update() {
+                this.y += this.speedY;
+                if (this.y > canvas.height) {
+                    this.reset();
+                }
+            }
+        }
+        
+        let raindrops = [];
+        let density = 100; // 进一步降低到 8，大幅减少绘制压力
+        let dropSize = 4;
+        let rainColor = 'black'; // 雨的颜色 - 可在此修改
+        let frameCount = 0;
+        let skipFrames = 0;
+        let lastFrameTime = 0;
+        const targetFPS = 64; // 限制雨的目标帧率为 24fps
+        
+        // 初始化雨滴
+        function initRain() {
+            raindrops = [];
+            for (let i = 0; i < density; i++) {
+                raindrops.push(new Raindrop(dropSize));
+            }
+        }
+        initRain();
+        
+        // 优化的绘制方法 - 批量绘制
+        function drawRain() {
+            ctx.fillStyle = rainColor; // 使用可调节的颜色变量
+            
+            for (let i = 0; i < raindrops.length; i++) {
+                const drop = raindrops[i];
+                drop.update();
+                
+                // 直接用全局透明度，减少 fillStyle 切换
+                ctx.globalAlpha = drop.opacity;
+                ctx.beginPath();
+                ctx.ellipse(drop.x, drop.y, drop.size, drop.size * 4, 0, 0, Math.PI * 2); // 改为 4 倍使其更瘦长
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+        }
+        
+        // 动画循环 - 减少检查频率
+        function animate() {
+            const now = Date.now();
+            const deltaTime = now - lastFrameTime;
+            const frameInterval = 1000 / targetFPS; // 计算目标帧间隔
+            
+            // 只在达到目标帧率时才绘制
+            if (deltaTime >= frameInterval) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawRain();
+                lastFrameTime = now;
+            }
+            
+            frameCount++;
+            if (frameCount % 240 === 0) {
+                // 每 240 帧（约 10 秒）才调整一次雨滴数量
+                const diff = density - raindrops.length;
+                if (diff > 0) {
+                    for (let i = 0; i < diff; i++) {
+                        raindrops.push(new Raindrop(dropSize));
+                    }
+                } else if (diff < 0) {
+                    raindrops.length = density;
+                }
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>

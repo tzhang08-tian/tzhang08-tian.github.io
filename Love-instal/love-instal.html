@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>四屏显示 - p5.js</title>
+    <title>Love is ...?</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
     <style>
         * {
@@ -81,10 +81,10 @@
             }
         }
         /* Per-sketch desired sizes (绝对定位：top = 距顶部百分比, left = 距左边百分比) */
-        #p5-1 { width: 40%; height: 50%; top: 3%; left: 10%; } /* 屏幕 1：距顶部 5%，距左边 5% */
-        #p5-2 { width: 27%; height: 87%; top: 8%; left: 70%; } /* 屏幕 2：距顶部 5%，距左边 52% */
-        #p5-3 { width: 15%; height: 26%; top: 65%; left: 5%; } /* 屏幕 3：距顶部 58%，距左边 5% */
-        #p5-4 { width: 44%; height: 36%; top: 62%; left: 29%; } /* 屏幕 4：距顶部 58%，距左边 52% */
+        #p5-1 { width: 55%; height: 50%; top: 3%; left: 4%; } /* 屏幕 1：距顶部 5%，距左边 5% */
+        #p5-2 { width: 28%; height: 80%; top: 8%; left: 68%; } /* 屏幕 2：距顶部 5%，距左边 52% */
+        #p5-3 { width: 30%; height: 18%; top: 60%; left: 12%; } /* 屏幕 3：距顶部 58%，距左边 5% */
+        #p5-4 { width: 70%; height: 15%; top: 82%; left: 20%; } /* 屏幕 4：距顶部 58%，距左边 52% */
         
         /* 雨效果 canvas 覆盖整个页面 */
         #rain-canvas {
@@ -124,6 +124,9 @@
     <script src="sketch3.js"></script>
     <script src="sketch4.js"></script>
     
+    <!-- 新增：蝴蝶效果 -->
+    <script src="butter5.js"></script>
+
     <!-- 雨效果脚本 -->
     <script>
         const canvas = document.getElementById('rain-canvas');
@@ -173,12 +176,12 @@
         
         let raindrops = [];
         let density = 100; // 进一步降低到 8，大幅减少绘制压力
-        let dropSize = 4;
+        let dropSize = 5;
         let rainColor = 'black'; // 雨的颜色 - 可在此修改
         let frameCount = 0;
         let skipFrames = 0;
         let lastFrameTime = 0;
-        const targetFPS = 64; // 限制雨的目标帧率为 24fps
+        const targetFPS = 24; // 限制雨的目标帧率为 24fps
         
         // 初始化雨滴
         function initRain() {

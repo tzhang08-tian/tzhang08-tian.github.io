@@ -7,23 +7,23 @@ new p5((p) => {
   let bg;                 // 背景图片
   let particles = [];     // 噪点粒子数组
 
-  const COLS = 3;         // 背景被切成 3 列
-  const ROWS = 3;         // 背景被切成 3 行
+  const COLS = 1;         // 背景被切成 2 列
+  const ROWS = 3;         // 背景被切成 2 行
 
   let order;                  // 当前背景拼图的顺序
   let lastShuffleTime = 0;    // 上一次重排时间
-  let shuffleInterval = 5000; // 每 5 秒重排一次（可调整）
+  let shuffleInterval = 15000; // 每 5 秒重排一次（可调整）
 
   let cnv;                // 画布引用（导出图片要用）
 
   // 马赛克块大小（可以调整）
-  const MOSAIC_SIZE = 10;  // 10 像素一块，越大越粗糙
+  const MOSAIC_SIZE = 8;  // 10 像素一块，越大越粗糙
 
   // ---------------------------------------------
   // 预加载：加载背景图片
   // ---------------------------------------------
   p.preload = function() {
-    bg = p.loadImage("IMG_7489.jpg");
+    bg = p.loadImage("333.jpg");
   };
 
   // ---------------------------------------------
@@ -36,7 +36,7 @@ new p5((p) => {
     cnv = p.createCanvas(w, h);
 
     // 初始化噪点粒子（动态 grain）
-    for (let i = 0; i < 200; i++) { // 噪点数量
+    for (let i = 0; i < 400; i++) { // 噪点数量
       particles.push({
         x: p.random(p.width),
         y: p.random(p.height),

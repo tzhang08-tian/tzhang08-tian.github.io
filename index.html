@@ -4,15 +4,58 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <title>Tianyu's Intro to Computation</title>
+    <!-- 加载更适中花体（Merienda） -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- 替换原 Dancing Script 为 Merienda -->
+    <link href="https://fonts.googleapis.com/css2?family=Merienda:wght@400;600&display=swap" rel="stylesheet">
     <style>
       h1{
-        text-align: center;
-        font-family: Arial, sans-serif;
+        text-align: right !important; /* 标题靠右 */
+        font-family: 'Merienda', cursive; /* 替换为更适中的花体 */
         height: 5%;
+        color: #ffffff !important; /* 强制白色标题 */
+      }
+      h1 a {
+        color: #ffffff !important; /* 标题内链接也为白色 */
+      }
+      body {
+        color: #ffffff; /* 其他文本为白色 */
+        font-family: 'Merienda', cursive; /* 替换为更适中的花体 */
+        text-align: right; /* 全局文本靠右 */
+        padding-right: 5%; /* 右侧留白为屏幕宽度的 10% */
+      }
+      /* 半透明灰色覆盖层，位于文字与画布之间 */
+      #bg-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background: rgba(82, 71, 71, 0.4);
+        z-index: -1;             /* 高于画布，低于文字 */
+        pointer-events: none;    /* 不影响点击 */
+      }
+      /* 左侧固定图片样式 */
+      #left-side-img {
+        position: fixed;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        max-height: 60vh;
+        width: auto;
+        z-index: 5;            /* 高于灰色覆盖层 */
+        pointer-events: none;  /* 不拦截点击 */
       }
     </style>
+    <!-- p5.js 核心库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <!-- p5.js DOM 扩展（用于 createButton 等） -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/addons/p5.dom.min.js"></script>
   </head>
-  <body style="background-color:rgba(249, 246, 178,1.0);">
+  <body style="margin:0;">
+    <div id="bg-overlay"></div>
+    <!-- 左侧图片 -->
+    <img id="left-side-img" src="5.png" alt="left image">
+
     <h1 style="color: hotpink;font-size: 60px;">My Exercise</h1>
 
     <h1> <a href="exercise3/hyperlink1.html" style="color: blueviolet;">Exercise3 Handmade website </a> </h1>
@@ -35,14 +78,176 @@
 
     <h1><a href="weather/index.html" style="color:limegreen;">Final Software: *weather* </a></h1>
 
+    <!-- JS 动态背景 -->
+      <script>
+    // ---------------------------------------------
+// 全局变量
+// ---------------------------------------------
+let bg;                 // 背景图片
+let particles = [];     // 噪点粒子数组
+
+const COLS = 3;         // 背景被切成 3 列
+const ROWS = 3;         // 背景被切成 2 行
+
+let order;              // 当前背景拼图的顺序
+let lastShuffleTime = 0;    // 上一次重排时间
+let shuffleInterval = 1000; // 每 3 秒重排一次（你可调整）
+
+let cnv;               // 画布引用（导出图片要用）
+
+// 新增：离屏缓冲与更新标记
+let bgBuffer;         // 绘制拼贴 + 粒子的复合缓冲
+let mosaicLayer;      // 马赛克结果图层
+
+// 马赛克块大小（可以调整）
+const MOSAIC_SIZE = 10;  // 10 像素一块，越大越粗糙
 
 
+// ---------------------------------------------
+// 预加载：加载背景图片
+// ---------------------------------------------
+function preload() {
+  bg = loadImage("IMG_9455.jpg");
+}
+
+// ---------------------------------------------
+// 初始化：画布、粒子生成、初始拼图顺序
+// ---------------------------------------------
+function setup() {
+  pixelDensity(1); // 降低高分屏的像素工作量
+  // 将画布改为视口大小
+  cnv = createCanvas(windowWidth, windowHeight);
+  // 让画布作为“背景”固定在页面底层
+  cnv.style('position', 'fixed');
+  cnv.style('top', '0');
+  cnv.style('left', '0');
+  cnv.style('width', '100vw');
+  cnv.style('height', '100vh');
+  cnv.style('z-index', '-2'); // 让画布在最底层
+  cnv.style('pointer-events', 'none');
+
+  // 离屏缓冲创建
+  bgBuffer = createGraphics(windowWidth, windowHeight);
+  mosaicLayer = createGraphics(windowWidth, windowHeight);
+
+  // 初始化噪点粒子（动态 grain）
+  for (let i = 0; i < 200; i++) {//噪点数量
+    particles.push({
+      x: random(width),
+      y: random(height),
+      speed: random(0.1, 3),//速度移动区间，越大越快
+      alpha: random(90, 100)//透明度区间，越大越亮
+    });
+  }
+
+  // 首次随机顺序
+  shuffleBackground();
+  // 首帧就渲染一次背景与马赛克
+  renderBackgroundToBuffer();
+  updateMosaic(MOSAIC_SIZE);
+  lastShuffleTime = millis();
+}
+
+// 在窗口尺寸变化时同步画布尺寸
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  // 重建缓冲以匹配新尺寸
+  bgBuffer = createGraphics(windowWidth, windowHeight);
+  mosaicLayer = createGraphics(windowWidth, windowHeight);
+  // 立即重绘
+  renderBackgroundToBuffer();
+  updateMosaic(MOSAIC_SIZE);
+}
+
+// ---------------------------------------------
+// 主循环：绘制背景 + 绘制粒子
+// ---------------------------------------------
 
 
+function draw() {
+      // 每帧：重建复合缓冲（背景 + 粒子），再生成马赛克
+      renderBackgroundToBuffer();
+      drawGrainTo(bgBuffer);          // 粒子画到复合缓冲里
+      updateMosaic(MOSAIC_SIZE);      // 每帧刷新马赛克
+      image(mosaicLayer, 0, 0, width, height);
 
-    
+  // 定时更新“排位”（顺序），下一帧会按新顺序重建背景
+  if (millis() - lastShuffleTime > shuffleInterval) {
+    shuffleBackground();
+    lastShuffleTime = millis();
+  }
+}
 
+// ---------------------------------------------
+// 功能：随机重新排列背景拼图
+// ---------------------------------------------
+function shuffleBackground() {
 
+  // 更新随机排列（0~8）
+  order = shuffle([...Array(COLS * ROWS).keys()]);
+}
 
+// 将当前顺序的拼贴背景绘制到复合缓冲
+function renderBackgroundToBuffer() {
+  bgBuffer.clear();
+
+  const tileW = bgBuffer.width / COLS;
+  const tileH = bgBuffer.height / ROWS;
+  const srcW = bg.width / COLS;
+  const srcH = bg.height / ROWS;
+
+  let k = 0;
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const idx = order[k++];
+      const sx = (idx % COLS) * srcW;
+      const sy = floor(idx / COLS) * srcH;
+      const dx = c * tileW;
+      const dy = r * tileH;
+      bgBuffer.image(bg, dx, dy, tileW, tileH, sx, sy, srcW, srcH);
+    }
+  }
+}
+
+// 将粒子绘制到指定图层（复合缓冲），以便参与马赛克
+function drawGrainTo(g) {
+  g.noStroke();
+  for (let p of particles) {
+    g.fill(255, p.alpha);
+    g.rect(p.x, p.y, 1.5, 2);
+    p.y += p.speed;
+    if (p.y > height) p.y = 0;
+  }
+}
+
+// 新增：一次性马赛克生成（用 pixels[]，避免每帧 get()）
+// ---------------------------------------------
+function updateMosaic(tileSize) {
+  bgBuffer.loadPixels();
+  mosaicLayer.clear();
+  mosaicLayer.noStroke();
+
+  const w = bgBuffer.width;
+  const h = bgBuffer.height;
+  const pixels = bgBuffer.pixels;
+
+  for (let y = 0; y < h; y += tileSize) {
+    for (let x = 0; x < w; x += tileSize) {
+      const sx = Math.min(x + (tileSize >> 1), w - 1);
+      const sy = Math.min(y + (tileSize >> 1), h - 1);
+      const idx = 4 * (sy * w + sx);
+
+      const r = pixels[idx];
+      const g = pixels[idx + 1];
+      const b = pixels[idx + 2];
+      const a = pixels[idx + 3];
+
+      mosaicLayer.fill(r, g, b, a);
+      mosaicLayer.rect(x, y, tileSize, tileSize);
+    }
+  }
+}
+
+    </script>
   </body>
 </html>

@@ -1,7 +1,7 @@
 // sketch3 - map.js 改进版（实例模式）
 new p5((p) => {
   let W, H;
-  let TILE = 4;
+  let TILE = 7;
   let cols, rows;
   let bg = [];
   let revealed = [];
@@ -12,6 +12,8 @@ new p5((p) => {
   let allRevealed = false;
   let lastRefreshTime = 0;
   const refreshInterval = 8000; // 8秒自动刷新
+  // 新增：控制只在完成揭示后安排一次刷新
+  let refreshScheduled = false;
 
   // 新增：树条纹区域的格子记录与蓝点
   let treeStripeCells = [];
@@ -87,27 +89,6 @@ new p5((p) => {
     rebuildBlueDots();
 
     lastRefreshTime = p.millis();
-    
-    // 每 5 秒自动刷新一次
-    setInterval(() => {
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          revealed[r][c] = false;
-        }
-      }
-      frontier = [];
-      allRevealed = false;
-      
-      generateBackground();
-      generateTreeStripe();
-      generateDarkStripe();
-      generateCenterBlobs();
-
-      // 新增：刷新后重建蓝点
-      rebuildBlueDots();
-
-      p.loop();
-    }, refreshInterval);
   };
 
   p.draw = function() {
@@ -146,6 +127,13 @@ new p5((p) => {
 
     if (frontier.length === 0) {
       allRevealed = true;
+      // 新增：仅在完成揭示后安排一次延时刷新
+      if (!refreshScheduled) {
+        refreshScheduled = true;
+        setTimeout(() => {
+          doRefresh();
+        }, refreshInterval);
+      }
       return;
     }
 
@@ -183,7 +171,36 @@ new p5((p) => {
 
     if (created === 0 && frontier.length === 0) {
       allRevealed = true;
+      // 新增：在这一分支也安排一次延时刷新
+      if (!refreshScheduled) {
+        refreshScheduled = true;
+        setTimeout(() => {
+          doRefresh();
+        }, refreshInterval);
+      }
     }
+  }
+
+  // 新增：封装一次刷新流程，只在揭示完成后调用
+  function doRefresh() {
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        revealed[r][c] = false;
+      }
+    }
+    frontier = [];
+    allRevealed = false;
+
+    generateBackground();
+    generateTreeStripe();
+    generateDarkStripe();
+    generateCenterBlobs();
+
+    rebuildBlueDots();
+
+    refreshScheduled = false;
+    lastRefreshTime = p.millis();
+    p.loop();
   }
 
   function generateBackground() {

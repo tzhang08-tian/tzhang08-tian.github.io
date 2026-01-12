@@ -12,7 +12,7 @@ let targetX, targetY;
 let state = "moving";
 let restFrames = 0;
 
-let mosaicSize = 5; // 恢复马赛克：设置为非0的块大小（可根据需要调整）
+let mosaicSize = 8; // 恢复马赛克：设置为非0的块大小（可根据需要调整）
 
 // ⭐ 旋转角度（一定要先声明）
 let angle = 0;
@@ -21,6 +21,8 @@ let angle = 0;
 let currentEdge = null; // { side: 'top'|'right'|'bottom'|'left', rect: DOMRect, px:number, py:number }
 // 新增：是否使用备用停靠图像的标志
 let useAltRestImage = false;
+// 新增：是否已安排自动重启
+let refreshScheduled = false;
 
 function preload() {
   butterfly1 = loadImage("01.png");
@@ -58,7 +60,9 @@ function setup() {
     useAlt: false,
     restRotOffset: 0,      // 新增：停靠时旋转偏移
     restRotSpeed: 0,        // 新增：停靠时旋转速度
-    restInstant: false // 新增：是否在停靠时直接全角度旋转
+    restInstant: false, // 新增：是否在停靠时直接全角度旋转
+    // 新增：记录本轮是否完成过一次停靠
+    restCount: 0
   }));
   butterflies.forEach(b => pickNewTargetFor(b));
 }
@@ -83,6 +87,12 @@ function draw() {
   }
 
   if (mosaicSize > 0) applyMosaic();
+
+  // 新增：所有蝴蝶本轮都停靠过一次后，安排新一轮
+  if (!refreshScheduled && butterflies.length > 0 && butterflies.every(b => (b.restCount || 0) >= 1)) {
+    refreshScheduled = true;
+    setTimeout(resetAnimationCycle, 800); // 略微停顿后重启
+  }
 }
 
 // =================== 绘制（多体） ===================
@@ -94,13 +104,13 @@ function drawButterflyFor(b) {
     translate(b.x, b.y);
     rotate(b.angle);
     if (phase < cycle / 3) {
-      image(butterfly1, 0, 0, 270, 270);
+      image(butterfly1, 0, 0, 405, 405); // 270 -> 405
     } else if (phase < (2 * cycle) / 3) {
       let sx = 0.9, sy = 0.85;
       scale(sx, sy);
-      image(butterfly1, 0, 0, 270, 270);
+      image(butterfly1, 0, 0, 405, 405); // 270 -> 405
     } else {
-      image(butterfly2, 0, 0, 270, 270);
+      image(butterfly2, 0, 0, 405, 405); // 270 -> 405
     }
     pop();
   } else {
@@ -109,9 +119,9 @@ function drawButterflyFor(b) {
     const extra = b.restRotOffset; // 无论即时或缓慢，都使用偏移
     rotate(b.angle + extra);
     if (b.useAlt && butterflyRestAlt) {
-      image(butterflyRestAlt, 0, 0, 220, 300);
+      image(butterflyRestAlt, 0, 0, 330, 450); // 220x300 -> 330x450
     } else {
-      image(butterfly1, 0, 0, 200, 300);
+      image(butterfly1, 0, 0, 300, 450); // 200x300 -> 300x450
     }
     pop();
   }
@@ -177,6 +187,9 @@ function handleRestingFor(b) {
   }
 
   if (b.restFrames <= 0) {
+    // 新增：累计本轮停靠次数
+    b.restCount = (b.restCount || 0) + 1;
+
     b.useAlt = false;
     b.restInstant = false;
     b.restRotOffset = 0;
@@ -184,6 +197,27 @@ function handleRestingFor(b) {
     pickNewTargetFor(b);
     b.state = "moving";
   }
+}
+
+// 新增：自动重启一轮（重新定位并清空停靠状态）
+function resetAnimationCycle() {
+  for (const b of butterflies) {
+    b.x = random(width * 0.15, width * 0.85);
+    b.y = random(height * 0.15, height * 0.85);
+    b.targetX = width / 2;
+    b.targetY = height / 2;
+    b.state = "moving";
+    b.restFrames = 0;
+    b.angle = 0;
+    b.currentEdge = null;
+    b.useAlt = false;
+    b.restRotOffset = 0;
+    b.restRotSpeed = 0;
+    b.restInstant = false;
+    b.restCount = 0;
+    pickNewTargetFor(b);
+  }
+  refreshScheduled = false;
 }
 
 // =================== 目标选择（多体） ===================

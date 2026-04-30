@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Tianyu Zhang</title>
+
+<style>
+  :root {
+    --bg:     #3a3d45;
+    --panel:  #2a2825;
+    --border: rgba(180,200,255,0.08);
+    --text:   #d8dce8;
+    --muted:  #606878;
+    --accent: #a3b6cb;
+    --hover:  rgba(180,200,255,0.05);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', 'Courier New', monospace;
+    font-weight: 500;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── layout ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 600px;
+    height: 100vh;
+  }
+
+  /* ══════════════ left viewport ══════════════ */
+  .viewport {
+    position: relative;
+    background: #444444;
+    border-right: 2px solid var(--border);
+    overflow: hidden;
+  }
+
+  #three { width: 100%; height: 100%; display: block; cursor: grab; }
+  #three:active { cursor: grabbing; }
+
+  .viewport-ui {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px 24px;
+    pointer-events: none;
+  }
+
+  .viewport-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .zoom-controls { display: flex; flex-direction: column; gap: 6px; pointer-events: all; }
+
+  .zoom-btn {
+    width: 28px; height: 28px;
+    background: rgba(20,20,16,0.8);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .zoom-btn:hover { background: rgba(40,40,32,0.9); color: var(--text); }
+
+  .work-tag {
+    position: absolute;
+    bottom: 20px; left: 24px; right: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .work-tag-inner {
+    background: rgba(14,14,12,0.85);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+  }
+
+  .drag-hint { font-size: 9px; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; }
+
+  /* ══════════════ name (left) ══════════════ */
+  .viewport-logo {
+    position: absolute;
+    top: 40px; left: 40px;
+    font-family: 'Georgia', serif; font-size: 28px; font-style: italic;
+    color: var(--text);
+    pointer-events: none;
+  }
+
+  /* ══════════════ right panel ══════════════ */
+  .panel { display: flex; flex-direction: column; background: var(--panel); overflow: hidden; }
+
+  .panel-nav {
+    padding: 40px 20px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .breadcrumb {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted); padding-bottom: 14px;
+  }
+  .breadcrumb span { cursor: pointer; transition: color 0.2s; }
+  .breadcrumb span:hover { color: var(--text); }
+  .breadcrumb .active { color: var(--accent); cursor: default; }
+  .breadcrumb .sep { color: var(--border); font-size: 13px; }
+
+  /* ── views ── */
+  .view { display: none; flex: 1; overflow-y: auto; padding: 20px; }
+  .view.active { display: block; }
+  .view::-webkit-scrollbar { width: 2px; }
+  .view::-webkit-scrollbar-thumb { background: var(--border); }
+
+  /* ── home categories ── */
+  .home-intro {
+    font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 18px;
+    padding-bottom: 14px; border-bottom: 1px solid var(--border);
+  }
+
+  .cat-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .cat-item {
+    padding: 70px 14px 50px 30px;
+    border: 3px solid var(--border);
+    cursor: pointer; transition: all 0.25s;
+    position: relative; overflow: hidden;
+  }
+  .cat-item::before {
+    content: ''; position: absolute;
+    left: 0; top: 0; bottom: 0; width: 0;
+    background: var(--accent); transition: width 0.25s;
+  }
+  .cat-item:hover { background: var(--hover); border-color: rgba(255,255,255,0.12); }
+  .cat-item:hover::before { width: 2px; }
+
+  .cat-num { font-size: 11px; letter-spacing: 0.2em; color: var(--muted); margin-bottom: 6px; transition: transform 0.25s; }
+  .cat-title { font-family: 'Georgia', serif; font-size: 20px; font-style: italic; color: var(--text); margin-bottom: 4px; transition: transform 0.25s; }
+  .cat-desc { font-size: 12px; color: var(--muted); line-height: 1.6; transition: transform 0.25s; }
+  .cat-item:hover .cat-num,
+  .cat-item:hover .cat-title,
+  .cat-item:hover .cat-desc { transform: translateX(3px); }
+  .cat-arrow {
+    position: absolute; right: 30px; top: 50%; transform: translateY(-50%);
+    font-size: 16px; color: var(--muted); transition: all 0.2s; opacity: 0;
+  }
+  .cat-item:hover .cat-arrow { opacity: 1; right: 20px; }
+
+  /* ── work list ── */
+  .section-head {
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 16px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between;
+  }
+
+  .work-list { display: flex; flex-direction: column; gap: 1px; }
+
+  .work-item {
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: all 0.2s;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .work-item:hover { padding-left: 6px; }
+
+  .work-thumb {
+    width: 44px; height: 44px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    flex-shrink: 0; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .work-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+  .work-title { font-family: 'Georgia', serif; font-size: 16px; color: var(--text); margin-bottom: 3px; }
+  .work-meta { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; }
+
+  /* ── work detail ── */
+  .detail-img {
+    width: 100%; aspect-ratio: 4/3;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    margin-bottom: 16px; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .detail-img img { width: 100%; height: 100%; object-fit: cover; }
+
+  .detail-title { font-family: 'Georgia', serif; font-size: 24px; font-style: italic; color: var(--text); margin-bottom: 6px; }
+  .detail-meta {
+    font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 14px;
+    padding-bottom: 14px; border-bottom: 1px solid var(--border);
+  }
+  .detail-body { font-family: 'Georgia', serif; font-size: 16px; color: rgba(232,228,220,0.7); line-height: 1.8; }
+
+  /* ── music view ── */
+  .music-card {
+    border: 1px solid var(--border); padding: 20px;
+    margin-bottom: 12px; transition: background 0.2s;
+  }
+  .music-card:hover { background: var(--hover); }
+  .music-title { font-family: 'Georgia', serif; font-size: 18px; font-style: italic; color: var(--text); margin-bottom: 6px; }
+  .music-meta { font-size: 11px; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 14px; }
+  .sc-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent);
+    border-bottom: 1px solid rgba(200,168,130,0.3);
+    padding-bottom: 2px; text-decoration: none;
+  }
+  .sc-link:hover { border-color: var(--accent); }
+
+  /* ══════════════ language switcher ══════════════ */
+  .lang-switcher {
+    flex-shrink: 0;
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .lang-label {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .lang-options { display: flex; gap: 4px; }
+  .lang-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    padding: 4px 7px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .lang-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
+  .lang-btn.active { color: var(--accent); border-color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="layout">
+  <!-- left: viewport -->
+  <div class="viewport">
+    <!-- ★ replace with your name -->
+    <div class="viewport-logo">Tianyu Zhang</div>
+  </div>
+
+  <!-- right: nav panel -->
+  <div class="panel">
+    <div class="panel-nav">
+      <div class="breadcrumb" id="breadcrumb">
+        <span class="active" data-i18n="all">All</span>
+      </div>
+    </div>
+
+    <!-- home -->
+    <div class="view active" id="view-home">
+      <div class="home-intro" data-i18n="selectDirection">Select a direction</div>
+      <div class="cat-list">
+        <div class="cat-item" onclick="goCategory('main')">
+         
+          <div class="cat-title" data-i18n="cat_main_title">Polished Works</div>
+          <div class="cat-desc" data-i18n="cat_main_desc">Installations and works with fully developed concepts</div>
+          <span class="cat-arrow">→</span>
+        </div>
+        <div class="cat-item" onclick="goCategory('exp')">
+         
+          <div class="cat-title" data-i18n="cat_exp_title">Small Works &amp; Experiments</div>
+          <div class="cat-desc" data-i18n="cat_exp_desc">Exploratory, unfinished, and growing ideas</div>
+          <span class="cat-arrow">→</span>
+        </div>
+        <div class="cat-item" onclick="goCategory('sketch')">
+         
+          <div class="cat-title" data-i18n="cat_sketch_title">Drafts · Writing · Sketches</div>
+          <div class="cat-desc" data-i18n="cat_sketch_desc">Process notes, manuscripts, fragments, and writing</div>
+          <span class="cat-arrow">→</span>
+        </div>
+        <div class="cat-item" onclick="goCategory('music')">
+         
+          <div class="cat-title" data-i18n="cat_music_title">Music</div>
+          <div class="cat-desc" data-i18n="cat_music_desc">Sound experiments and works on SoundCloud</div>
+          <span class="cat-arrow">↗</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- work list -->
+    <div class="view" id="view-list">
+      <div class="section-head">
+        <span id="list-title">Works</span>
+        <span id="list-count">—</span>
+      </div>
+      <div class="work-list" id="work-list-items"></div>
+    </div>
+
+    <!-- work detail -->
+    <div class="view" id="view-detail">
+      <div class="detail-img" id="detail-img-wrap"></div>
+      <div class="detail-title" id="detail-title"></div>
+      <div class="detail-meta" id="detail-meta"></div>
+      <div class="detail-body" id="detail-body"></div>
+    </div>
+
+    <!-- music -->
+    <div class="view" id="view-music">
+      <div class="section-head">
+        <span data-i18n="cat_music_title">Music</span>
+        <span>SoundCloud</span>
+      </div>
+      <!-- ★ replace with your real SoundCloud links -->
+      <div class="music-card">
+        <div class="music-title">Track Title 1</div>
+        <div class="music-meta">Genre · Year</div>
+        <a class="sc-link" href="https://soundcloud.com/your-account/track1" target="_blank" data-i18n="listen_sc">Listen on SoundCloud ↗</a>
+      </div>
+      <div class="music-card">
+        <div class="music-title">Track Title 2</div>
+        <div class="music-meta">Genre · Year</div>
+        <a class="sc-link" href="https://soundcloud.com/your-account/track2" target="_blank" data-i18n="listen_sc">Listen on SoundCloud ↗</a>
+      </div>
+    </div>
+
+    <!-- language switcher -->
+    <div class="lang-switcher">
+      <span class="lang-label" data-i18n="lang_label">Lang</span>
+      <div class="lang-options">
+        <button onclick="setLang('en')" data-lang="en" class="lang-btn active">EN</button>
+        <button onclick="setLang('zh')" data-lang="zh" class="lang-btn">中</button>
+        <button onclick="setLang('ja')" data-lang="ja" class="lang-btn">JP</button>
+        <button onclick="setLang('fr')" data-lang="fr" class="lang-btn">FR</button>
+        <button onclick="setLang('de')" data-lang="de" class="lang-btn">DE</button>
+        <button onclick="setLang('es')" data-lang="es" class="lang-btn">ES</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+
+<!--
+  ╔══════════════════════════════════════════════════════╗
+  ║  ★★★  Edit your work data here  ★★★               ║
+  ║                                                      ║
+  ║  Each work is a {} object with the following fields: ║
+  ║  id       : unique identifier, no duplicates         ║
+  ║  category : 'main' | 'exp' | 'sketch'                ║
+  ║  title    : work title                               ║
+  ║  year     : year string                              ║
+  ║  meta     : material, dimensions, brief info         ║
+  ║  desc     : work description text                    ║
+  ║  image    : image path, place images in images/      ║
+  ║             use empty string '' if no image          ║
+  ║  position : position in 3D gallery [x, y, z]         ║
+  ║  size     : size in 3D gallery [width, height]       ║
+  ╚══════════════════════════════════════════════════════╝
+-->
+<script>
+const WORKS = [
+  {
+    id: 'work_01',
+    category: 'main',
+    title: 'Work Title 1',
+    year: '2024',
+    meta: 'Mixed Media Installation · Material · Dimensions',
+    desc: 'Write your work description here. Include the background, material choices, and themes you want to explore.',
+    image: 'images/work_01.jpg',
+    position: [-4, 1.5, -10],
+    size: [3, 2],
+  },
+  {
+    id: 'work_02',
+    category: 'main',
+    title: 'Work Title 2',
+    year: '2024',
+    meta: 'Installation · Material · Dimensions',
+    desc: 'Write your work description here.',
+    image: 'images/work_02.jpg',
+    position: [4, 1.5, -10],
+    size: [3, 2],
+  },
+  {
+    id: 'work_03',
+    category: 'main',
+    title: 'Work Title 3',
+    year: '2023',
+    meta: 'Installation · Material · Dimensions',
+    desc: 'Write your work description here.',
+    image: 'images/work_03.jpg',
+    position: [0, 1.5, -13],
+    size: [4, 2.5],
+  },
+  {
+    id: 'work_04',
+    category: 'exp',
+    title: 'Experimental Work 1',
+    year: '2024',
+    meta: 'Video · Duration',
+    desc: 'Write your work description here.',
+    image: 'images/work_04.jpg',
+    position: [-4, 1.5, -5],
+    size: [2.5, 1.8],
+  },
+  {
+    id: 'work_05',
+    category: 'exp',
+    title: 'Experimental Work 2',
+    year: '2023',
+    meta: 'Mixed Media · Ongoing',
+    desc: 'Write your work description here.',
+    image: 'images/work_05.jpg',
+    position: [4, 1.5, -5],
+    size: [2.5, 1.8],
+  },
+  {
+    id: 'work_06',
+    category: 'sketch',
+    title: 'Draft / Writing 1',
+    year: '2024',
+    meta: 'Paper, Pencil',
+    desc: 'Write your work description here.',
+    image: 'images/work_06.jpg',
+    position: [-3, 1.5, -2],
+    size: [2, 2.5],
+  },
+  {
+    id: 'work_07',
+    category: 'sketch',
+    title: 'Draft / Writing 2',
+    year: '2023',
+    meta: 'Text · Print',
+    desc: 'Write your work description here.',
+    image: 'images/work_07.jpg',
+    position: [3, 1.5, -2],
+    size: [2, 2.5],
+  },
+];
+
+/* ── translations ── */
+let LANG = 'en';
+
+const TRANSLATIONS = {
+  en: {
+    all: 'All',
+    selectDirection: 'Select a direction',
+    cat_main_title: 'Polished Works',
+    cat_main_desc: 'Installations and works with fully developed concepts',
+    cat_exp_title: 'Small Works & Experiments',
+    cat_exp_desc: 'Exploratory, unfinished, and growing ideas',
+    cat_sketch_title: 'Drafts · Writing · Sketches',
+    cat_sketch_desc: 'Process notes, manuscripts, fragments, and writing',
+    cat_music_title: 'Music',
+    cat_music_desc: 'Sound experiments and works on SoundCloud',
+    listen_sc: 'Listen on SoundCloud ↗',
+    works_count: n => `${n} works`,
+    lang_label: 'Lang',
+  },
+  zh: {
+    all: '全部',
+    selectDirection: '选择一个方向',
+    cat_main_title: '完成度高的作品',
+    cat_main_desc: '有议题讨论、经过完整思考的装置与创作',
+    cat_exp_title: '小作品与实验',
+    cat_exp_desc: '尝试性的、未完成的、正在生长的想法',
+    cat_sketch_title: '草稿 · 文字 · sketch',
+    cat_sketch_desc: '过程记录、手稿、思考碎片与写作',
+    cat_music_title: '音乐创作',
+    cat_music_desc: 'SoundCloud 上的声音实验与作品',
+    listen_sc: '在 SoundCloud 收听 ↗',
+    works_count: n => `${n} 件`,
+    lang_label: '语言',
+  },
+  ja: {
+    all: 'すべて',
+    selectDirection: 'カテゴリを選択',
+    cat_main_title: '完成度の高い作品',
+    cat_main_desc: '議論と完全な思考を経た装置と創作',
+    cat_exp_title: '小作品と実験',
+    cat_exp_desc: '試行中・未完成・成長中のアイデア',
+    cat_sketch_title: '草稿・テキスト・スケッチ',
+    cat_sketch_desc: 'プロセス記録、手稿、断章、文章',
+    cat_music_title: '音楽制作',
+    cat_music_desc: 'SoundCloudでの音の実験と作品',
+    listen_sc: 'SoundCloudで聴く ↗',
+    works_count: n => `${n} 件`,
+    lang_label: '言語',
+  },
+  fr: {
+    all: 'Tout',
+    selectDirection: 'Choisir une direction',
+    cat_main_title: 'Œuvres abouties',
+    cat_main_desc: 'Installations et créations avec une réflexion complète',
+    cat_exp_title: 'Petites œuvres & expériences',
+    cat_exp_desc: 'Idées exploratoires, inachevées, en développement',
+    cat_sketch_title: 'Brouillons · Textes · Esquisses',
+    cat_sketch_desc: 'Notes de processus, manuscrits, fragments et écriture',
+    cat_music_title: 'Musique',
+    cat_music_desc: 'Expériences sonores et œuvres sur SoundCloud',
+    listen_sc: 'Écouter sur SoundCloud ↗',
+    works_count: n => `${n} œuvre${n > 1 ? 's' : ''}`,
+    lang_label: 'Langue',
+  },
+  de: {
+    all: 'Alle',
+    selectDirection: 'Wähle eine Richtung',
+    cat_main_title: 'Ausgereifte Werke',
+    cat_main_desc: 'Installationen und Arbeiten mit vollständig entwickelten Konzepten',
+    cat_exp_title: 'Kleine Werke & Experimente',
+    cat_exp_desc: 'Erkundende, unvollendete, wachsende Ideen',
+    cat_sketch_title: 'Entwürfe · Texte · Skizzen',
+    cat_sketch_desc: 'Prozessnotizen, Manuskripte, Fragmente und Schreiben',
+    cat_music_title: 'Musik',
+    cat_music_desc: 'Klangexperimente und Werke auf SoundCloud',
+    listen_sc: 'Auf SoundCloud hören ↗',
+    works_count: n => `${n} Werk${n > 1 ? 'e' : ''}`,
+    lang_label: 'Sprache',
+  },
+  es: {
+    all: 'Todo',
+    selectDirection: 'Selecciona una dirección',
+    cat_main_title: 'Obras acabadas',
+    cat_main_desc: 'Instalaciones y creaciones con conceptos plenamente desarrollados',
+    cat_exp_title: 'Obras pequeñas y experimentos',
+    cat_exp_desc: 'Ideas exploratorias, inacabadas y en crecimiento',
+    cat_sketch_title: 'Borradores · Textos · Bocetos',
+    cat_sketch_desc: 'Notas de proceso, manuscritos, fragmentos y escritura',
+    cat_music_title: 'Música',
+    cat_music_desc: 'Experimentos sonoros y obras en SoundCloud',
+    listen_sc: 'Escuchar en SoundCloud ↗',
+    works_count: n => `${n} obra${n > 1 ? 's' : ''}`,
+    lang_label: 'Idioma',
+  },
+};
+
+function t(key, ...args) {
+  const val = (TRANSLATIONS[LANG] || TRANSLATIONS.en)[key];
+  return typeof val === 'function' ? val(...args) : (val || key);
+}
+
+/* ── navigation state ── */
+let NAV_STATE = { view: 'home', cat: null, workId: null };
+
+/* ── nav logic ── */
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+}
+
+function setBreadcrumb(items) {
+  document.getElementById('breadcrumb').innerHTML = items.map((it, i) => {
+    const sep   = i > 0 ? '<span class="sep">/</span>' : '';
+    const cls   = i === items.length - 1 ? 'active' : '';
+    const click = it.action ? `onclick="${it.action}"` : '';
+    return `${sep}<span class="${cls}" ${click}>${it.label}</span>`;
+  }).join('');
+}
+
+function renderBreadcrumb() {
+  const { view, cat, workId } = NAV_STATE;
+  if (view === 'home') {
+    setBreadcrumb([{ label: t('all') }]);
+    return;
+  }
+  const items = [{ label: t('all'), action: 'goHome()' }];
+  if (cat) {
+    const catAction = (view === 'detail') ? `goCategory('${cat}')` : null;
+    items.push({ label: t('cat_' + cat + '_title'), action: catAction });
+  }
+  if (workId) {
+    const w = WORKS.find(x => x.id === workId);
+    if (w) items.push({ label: w.title });
+  }
+  setBreadcrumb(items);
+}
+
+function goHome() {
+  NAV_STATE = { view: 'home', cat: null, workId: null };
+  showView('home');
+  renderBreadcrumb();
+}
+
+function goCategory(cat) {
+  NAV_STATE = { view: cat === 'music' ? 'music' : 'list', cat, workId: null };
+  if (cat === 'music') {
+    showView('music');
+    renderBreadcrumb();
+    return;
+  }
+  const items = WORKS.filter(w => w.category === cat);
+  document.getElementById('list-title').textContent = t('cat_' + cat + '_title');
+  document.getElementById('list-count').textContent = t('works_count', items.length);
+
+  const container = document.getElementById('work-list-items');
+  container.innerHTML = '';
+  items.forEach(w => {
+    const el = document.createElement('div');
+    el.className = 'work-item';
+    el.innerHTML = `
+      <div class="work-thumb">${w.image ? `<img src="${w.image}" alt="">` : ''}</div>
+      <div>
+        <div class="work-title">${w.title}</div>
+        <div class="work-meta">${w.year}</div>
+      </div>`;
+    el.onclick = () => goDetail(w.id);
+    container.appendChild(el);
+  });
+
+  showView('list');
+  renderBreadcrumb();
+}
+
+function goDetail(workId) {
+  const w = WORKS.find(x => x.id === workId);
+  if (!w) return;
+  NAV_STATE = { view: 'detail', cat: w.category, workId };
+  document.getElementById('detail-img-wrap').innerHTML =
+    w.image ? `<img src="${w.image}" alt="${w.title}">` : '';
+  document.getElementById('detail-title').textContent = w.title;
+  document.getElementById('detail-meta').textContent  = w.meta + ' · ' + w.year;
+  document.getElementById('detail-body').textContent  = w.desc;
+  showView('detail');
+  renderBreadcrumb();
+}
+
+function setLang(lang) {
+  LANG = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === lang);
+  });
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const val = t(el.dataset.i18n);
+    if (typeof val === 'string') el.textContent = val;
+  });
+  renderBreadcrumb();
+  if (NAV_STATE.view === 'list' && NAV_STATE.cat) {
+    const items = WORKS.filter(w => w.category === NAV_STATE.cat);
+    document.getElementById('list-title').textContent = t('cat_' + NAV_STATE.cat + '_title');
+    document.getElementById('list-count').textContent = t('works_count', items.length);
+  }
+}
+</script>
+
+
+</body>
+</html>

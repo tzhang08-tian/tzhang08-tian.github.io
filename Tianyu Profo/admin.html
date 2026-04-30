@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Tianyu Zhang</title>
+<style>
+  :root {
+    --bg:      #3a3d45;
+    --panel:   #2a2825;
+    --border:  rgba(180,200,255,0.08);
+    --text:    #d8dce8;
+    --muted:   #606878;
+    --accent:  #a3b6cb;
+    --hover:   rgba(180,200,255,0.05);
+    --surface: #32353d;
+    --green:   #1d9e75;
+    --danger:  #c0392b;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', 'Courier New', monospace;
+    font-weight: 500;
+    font-size: 12px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; height: 52px;
+    background: var(--panel);
+    border-bottom: 2px solid var(--border);
+    flex-shrink: 0;
+  }
+  .topbar-title { font-size: 13px; font-style: italic; font-family: 'Georgia', serif; color: var(--text); }
+  .topbar-sub   { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; margin-top: 2px; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+
+  .btn {
+    padding: 7px 16px; font-family: inherit; font-size: 11px;
+    letter-spacing: 0.08em; cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent; color: var(--text); transition: all 0.15s;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-primary { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+  .btn-primary:hover { opacity: 0.85; color: var(--panel); }
+  .btn-primary.saved { background: var(--green); border-color: var(--green); }
+
+  .body { display: grid; grid-template-columns: 300px 1fr; flex: 1; overflow: hidden; }
+
+  .sidebar {
+    background: var(--panel);
+    border-right: 2px solid var(--border);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  .sidebar-head {
+    padding: 14px 16px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+  }
+  .sidebar-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+
+  .add-btn {
+    font-size: 11px; padding: 4px 10px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--accent); font-family: inherit; cursor: pointer; transition: all 0.15s;
+  }
+  .add-btn:hover { border-color: var(--accent); }
+
+  .hint-bar {
+    padding: 7px 16px; font-size: 10px; color: var(--muted);
+    border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.15); flex-shrink: 0;
+  }
+
+  .work-list-sidebar { overflow-y: auto; flex: 1; padding: 8px; }
+  .work-list-sidebar::-webkit-scrollbar { width: 2px; }
+  .work-list-sidebar::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .work-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px; border: 1px solid transparent; border-radius: 2px;
+    margin-bottom: 4px; cursor: pointer; transition: all 0.15s; user-select: none;
+  }
+  .work-row:hover  { background: var(--hover); border-color: var(--border); }
+  .work-row.active { background: var(--hover); border-color: var(--accent); }
+  .work-row.drag-over { border-color: var(--green); }
+
+  .drag-handle { color: var(--muted); font-size: 14px; cursor: grab; padding: 0 2px; flex-shrink: 0; }
+
+  .work-thumb-sm {
+    width: 36px; height: 36px; flex-shrink: 0;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+    overflow: hidden; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: var(--muted);
+  }
+  .work-thumb-sm img { width: 100%; height: 100%; object-fit: cover; }
+
+  .work-row-info { flex: 1; min-width: 0; }
+  .work-row-title { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .work-row-sub   { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  .cat-pill {
+    font-size: 9px; padding: 2px 6px;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+    color: var(--muted); white-space: nowrap; flex-shrink: 0;
+  }
+
+  .del-btn {
+    background: none; border: none; font-size: 16px; color: var(--muted);
+    cursor: pointer; padding: 0 2px; opacity: 0; transition: opacity 0.15s; font-family: inherit; flex-shrink: 0;
+  }
+  .work-row:hover .del-btn { opacity: 1; }
+  .del-btn:hover { color: var(--danger); }
+
+  .editor { overflow-y: auto; padding: 28px 32px; background: var(--bg); }
+  .editor::-webkit-scrollbar { width: 2px; }
+  .editor::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 100%; color: var(--muted); font-size: 12px; gap: 8px; text-align: center;
+  }
+
+  .form-block { margin-bottom: 32px; }
+  .form-block-title {
+    font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 14px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 10px; color: var(--muted); margin-bottom: 5px; letter-spacing: 0.08em; }
+  .field input[type=text],
+  .field textarea,
+  .field select {
+    width: 100%; font-family: inherit; font-size: 12px;
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--text); padding: 8px 10px; outline: none; transition: border-color 0.15s;
+  }
+  .field input[type=text]:focus,
+  .field textarea:focus { border-color: var(--accent); }
+  .field textarea { min-height: 80px; resize: vertical; line-height: 1.7; }
+  .field select option { background: var(--panel); }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .upload-preview {
+    width: 100%; aspect-ratio: 4/3; object-fit: cover;
+    display: block; border: 1px solid var(--border); margin-bottom: 8px;
+  }
+
+  .upload-area {
+    border: 1px dashed var(--border); padding: 20px;
+    text-align: center; cursor: pointer; transition: all 0.2s; position: relative;
+  }
+  .upload-area:hover { border-color: var(--accent); }
+  .upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+  .upload-area-label { font-size: 11px; color: var(--muted); line-height: 1.8; }
+
+  .cloudinary-section { background: var(--panel); border: 1px solid var(--border); padding: 14px; margin-top: 10px; }
+  .cloudinary-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .cloudinary-title { font-size: 11px; font-weight: 500; color: var(--text); }
+  .cloudinary-toggle { font-size: 10px; color: var(--muted); cursor: pointer; border-bottom: 1px solid var(--border); }
+  .cloudinary-fields { display: none; }
+  .cloudinary-fields.open { display: block; }
+  .cloudinary-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .cloudinary-input {
+    width: 100%; font-family: inherit; font-size: 11px; padding: 6px 8px;
+    border: 1px solid var(--border); background: var(--bg); color: var(--text); outline: none;
+  }
+  .cloudinary-input:focus { border-color: var(--accent); }
+  .upload-cloud-btn {
+    width: 100%; padding: 8px; font-family: inherit; font-size: 11px;
+    background: var(--accent); color: var(--panel); border: none; cursor: pointer;
+    letter-spacing: 0.08em; transition: opacity 0.15s; margin-top: 4px;
+  }
+  .upload-cloud-btn:hover { opacity: 0.85; }
+  .upload-cloud-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .cloud-status { font-size: 10px; margin-top: 6px; min-height: 16px; }
+  .cloud-status.ok  { color: var(--green); }
+  .cloud-status.err { color: var(--danger); }
+
+  .xyz-row { display: grid; grid-template-columns: 24px 1fr 44px; align-items: center; gap: 6px 10px; margin-bottom: 8px; }
+  .xyz-axis { font-size: 11px; font-weight: 500; color: var(--muted); }
+  .xyz-val  { font-size: 11px; text-align: right; font-weight: 500; color: var(--accent); }
+  .xyz-hint { font-size: 10px; color: var(--muted); margin-top: 6px; line-height: 1.8; }
+
+  input[type=range] { accent-color: var(--accent); }
+
+  .lang-note {
+    font-size: 10px; color: var(--muted); line-height: 1.8;
+    padding: 10px 12px; background: var(--panel); border: 1px solid var(--border); margin-top: 8px;
+  }
+
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--accent); color: var(--panel);
+    padding: 10px 18px; font-size: 12px; letter-spacing: 0.08em;
+    opacity: 0; transition: opacity 0.3s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="topbar-title">Tianyu Zhang — Admin</div>
+    <div class="topbar-sub">admin.html · local use only</div>
+  </div>
+  <div class="topbar-right">
+    <button class="btn" onclick="loadFromFile()">Import works.json</button>
+    <button class="btn btn-primary" id="save-btn" onclick="exportJSON()">Export works.json</button>
+  </div>
+</div>
+
+<div class="body">
+
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <span class="sidebar-label">Works <span id="count">0</span></span>
+      <button class="add-btn" onclick="addWork()">+ New</button>
+    </div>
+    <div class="hint-bar">⠿ drag to reorder in gallery</div>
+    <div class="work-list-sidebar" id="work-list"></div>
+  </div>
+
+  <div class="editor" id="editor">
+    <div class="empty-state">
+      <span style="font-size:24px;opacity:0.2">←</span>
+      <span>Click a work to edit</span>
+      <span style="font-size:10px;color:var(--muted)">or click "+ New" to add one</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="import-input" accept=".json" style="display:none" onchange="handleImport(this)">
+
+<script>
+/* ── 初始数据与 portfolio.html 完全一致 ── */
+let works = [
+  { id:'work_01', category:'main',   title:'Work Title 1',        year:'2024', meta:'Mixed Media Installation · Material · Dimensions', desc:'Write your work description here. Include the background, material choices, and themes you want to explore.', image:'images/work_01.jpg', position:[-4,1.5,-10], size:[3,2] },
+  { id:'work_02', category:'main',   title:'Work Title 2',        year:'2024', meta:'Installation · Material · Dimensions',             desc:'Write your work description here.', image:'images/work_02.jpg', position:[4,1.5,-10],  size:[3,2] },
+  { id:'work_03', category:'main',   title:'Work Title 3',        year:'2023', meta:'Installation · Material · Dimensions',             desc:'Write your work description here.', image:'images/work_03.jpg', position:[0,1.5,-13],  size:[4,2.5] },
+  { id:'work_04', category:'exp',    title:'Experimental Work 1', year:'2024', meta:'Video · Duration',                                 desc:'Write your work description here.', image:'images/work_04.jpg', position:[-4,1.5,-5],  size:[2.5,1.8] },
+  { id:'work_05', category:'exp',    title:'Experimental Work 2', year:'2023', meta:'Mixed Media · Ongoing',                            desc:'Write your work description here.', image:'images/work_05.jpg', position:[4,1.5,-5],   size:[2.5,1.8] },
+  { id:'work_06', category:'sketch', title:'Draft / Writing 1',   year:'2024', meta:'Paper, Pencil',                                    desc:'Write your work description here.', image:'images/work_06.jpg', position:[-3,1.5,-2],  size:[2,2.5] },
+  { id:'work_07', category:'sketch', title:'Draft / Writing 2',   year:'2023', meta:'Text · Print',                                     desc:'Write your work description here.', image:'images/work_07.jpg', position:[3,1.5,-2],   size:[2,2.5] },
+];
+
+const CAT = { main:'Polished', exp:'Experiment', sketch:'Draft' };
+let selectedId = null;
+let dragSrcId  = null;
+
+function renderList() {
+  const el = document.getElementById('work-list');
+  document.getElementById('count').textContent = works.length;
+  el.innerHTML = '';
+  works.forEach((w, i) => {
+    const row = document.createElement('div');
+    row.className = 'work-row' + (w.id === selectedId ? ' active' : '');
+    row.draggable = true;
+    row.innerHTML = `
+      <span class="drag-handle">⠿</span>
+      <div class="work-thumb-sm">
+        ${w.image && !w.image.startsWith('images/') ? `<img src="${w.image}" alt="">` : `<span>${i+1}</span>`}
+      </div>
+      <div class="work-row-info">
+        <div class="work-row-title">${w.title||'Untitled'}</div>
+        <div class="work-row-sub">${w.year||'—'}</div>
+      </div>
+      <span class="cat-pill">${CAT[w.category]||w.category}</span>
+      <button class="del-btn" onclick="deleteWork('${w.id}',event)">×</button>`;
+    row.onclick = e => {
+      if (e.target.classList.contains('del-btn') || e.target.classList.contains('drag-handle')) return;
+      selectWork(w.id);
+    };
+    row.addEventListener('dragstart', () => { dragSrcId = w.id; setTimeout(()=>row.style.opacity='0.4',0); });
+    row.addEventListener('dragend',   () => row.style.opacity = '1');
+    row.addEventListener('dragover',  e => { e.preventDefault(); row.classList.add('drag-over'); });
+    row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+    row.addEventListener('drop', e => {
+      e.preventDefault(); row.classList.remove('drag-over');
+      if (dragSrcId === w.id) return;
+      const si = works.findIndex(x=>x.id===dragSrcId);
+      const ti = works.findIndex(x=>x.id===w.id);
+      const [moved] = works.splice(si,1); works.splice(ti,0,moved);
+      renderList(); showToast('Order updated');
+    });
+    el.appendChild(row);
+  });
+}
+
+function selectWork(id) { selectedId = id; renderList(); const w = works.find(x=>x.id===id); if(w) renderForm(w); }
+
+function renderForm(w) {
+  document.getElementById('editor').innerHTML = `
+    <div class="form-block">
+      <div class="form-block-title">Basic Info</div>
+      <div class="field"><label>Title</label><input type="text" value="${esc(w.title)}" oninput="upd('title',this.value)"></div>
+      <div class="field-row">
+        <div class="field"><label>Year</label><input type="text" value="${esc(w.year)}" oninput="upd('year',this.value)"></div>
+        <div class="field"><label>Category</label>
+          <select onchange="upd('category',this.value)">
+            <option value="main"   ${w.category==='main'  ?'selected':''}>01 Polished Works</option>
+            <option value="exp"    ${w.category==='exp'   ?'selected':''}>02 Experiments</option>
+            <option value="sketch" ${w.category==='sketch'?'selected':''}>03 Drafts · Writing</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Material / Medium / Dimensions</label><input type="text" value="${esc(w.meta)}" oninput="upd('meta',this.value)"></div>
+      <div class="field"><label>Description</label><textarea oninput="upd('desc',this.value)">${esc(w.desc)}</textarea></div>
+      <div class="lang-note">
+        Your portfolio.html supports EN / 中 / JP / FR / DE / ES switching.<br>
+        Title and description here appear in all languages — add per-language translations directly in portfolio.html if needed.
+      </div>
+    </div>
+
+    <div class="form-block">
+      <div class="form-block-title">Artwork Image</div>
+      ${w.image && !w.image.startsWith('images/') ? `<img class="upload-preview" id="preview-img" src="${esc(w.image)}" alt="">` :
+        w.image ? `<div style="font-size:10px;color:var(--muted);padding:8px 10px;border:1px solid var(--border);margin-bottom:8px">Current: ${esc(w.image)}</div>` : ''}
+      <div class="upload-area">
+        <input type="file" accept="image/*" onchange="handleLocalUpload(this)">
+        <div class="upload-area-label">Click to upload (local preview)<br><span style="font-size:10px">JPG / PNG / WEBP</span></div>
+      </div>
+      <div class="cloudinary-section">
+        <div class="cloudinary-head">
+          <span class="cloudinary-title">Upload to Cloudinary (permanent online storage)</span>
+          <span class="cloudinary-toggle" onclick="toggleCloud()">Configure ▾</span>
+        </div>
+        <div class="cloudinary-fields" id="cl-fields">
+          <div class="cloudinary-row">
+            <input class="cloudinary-input" id="cl-cloud"  placeholder="Cloud Name"    value="${localStorage.getItem('cl_cloud')||''}">
+            <input class="cloudinary-input" id="cl-preset" placeholder="Upload Preset" value="${localStorage.getItem('cl_preset')||''}">
+          </div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:8px;line-height:1.8">Sign up free at cloudinary.com → Settings → Upload → Add upload preset</div>
+        </div>
+        <button class="upload-cloud-btn" onclick="uploadToCloudinary()">Upload to Cloudinary ↑</button>
+        <div class="cloud-status" id="cloud-status"></div>
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label>Image URL (edit directly)</label>
+        <input type="text" value="${esc(w.image)}" oninput="upd('image',this.value)" style="font-size:10px">
+      </div>
+    </div>
+
+    <div class="form-block">
+      <div class="form-block-title">Position in 3D Gallery</div>
+      <div class="xyz-row">
+        <span class="xyz-axis">X</span>
+        <input type="range" min="-10" max="10" step="0.5" value="${w.position[0]}" oninput="updPos(0,+this.value);document.getElementById('xv').textContent=this.value">
+        <span class="xyz-val" id="xv">${w.position[0]}</span>
+      </div>
+      <div class="xyz-row">
+        <span class="xyz-axis">Y</span>
+        <input type="range" min="0" max="5" step="0.1" value="${w.position[1]}" oninput="updPos(1,+this.value);document.getElementById('yv').textContent=(+this.value).toFixed(1)">
+        <span class="xyz-val" id="yv">${w.position[1]}</span>
+      </div>
+      <div class="xyz-row">
+        <span class="xyz-axis">Z</span>
+        <input type="range" min="-15" max="0" step="0.5" value="${w.position[2]}" oninput="updPos(2,+this.value);document.getElementById('zv').textContent=this.value">
+        <span class="xyz-val" id="zv">${w.position[2]}</span>
+      </div>
+      <div class="xyz-hint">X: left(−) / right(+) &nbsp;·&nbsp; Y: height (1.5 = wall height) &nbsp;·&nbsp; Z: depth (more negative = deeper in gallery)</div>
+    </div>
+
+    <div class="form-block">
+      <div class="form-block-title">Size in 3D Gallery</div>
+      <div class="xyz-row">
+        <span class="xyz-axis">W</span>
+        <input type="range" min="1" max="7" step="0.5" value="${w.size[0]}" oninput="updSz(0,+this.value);document.getElementById('sw').textContent=this.value">
+        <span class="xyz-val" id="sw">${w.size[0]}</span>
+      </div>
+      <div class="xyz-row">
+        <span class="xyz-axis">H</span>
+        <input type="range" min="1" max="5" step="0.5" value="${w.size[1]}" oninput="updSz(1,+this.value);document.getElementById('sh').textContent=this.value">
+        <span class="xyz-val" id="sh">${w.size[1]}</span>
+      </div>
+    </div>`;
+}
+
+function upd(key,val){ const w=works.find(x=>x.id===selectedId); if(w){w[key]=val;renderList();} }
+function updPos(axis,val){ const w=works.find(x=>x.id===selectedId); if(w) w.position[axis]=val; }
+function updSz(axis,val) { const w=works.find(x=>x.id===selectedId); if(w) w.size[axis]=val; }
+
+function handleLocalUpload(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    upd('image',e.target.result);
+    const prev=document.getElementById('preview-img');
+    if(prev){prev.src=e.target.result;}
+    else{const area=document.querySelector('.upload-area');const img=document.createElement('img');img.id='preview-img';img.className='upload-preview';img.src=e.target.result;area.parentNode.insertBefore(img,area);}
+  };
+  reader.readAsDataURL(file);
+}
+
+function toggleCloud(){ document.getElementById('cl-fields').classList.toggle('open'); }
+
+async function uploadToCloudinary(){
+  const cloudName=document.getElementById('cl-cloud').value.trim();
+  const preset=document.getElementById('cl-preset').value.trim();
+  localStorage.setItem('cl_cloud',cloudName); localStorage.setItem('cl_preset',preset);
+  if(!cloudName||!preset){setCloudStatus('Please fill in Cloud Name and Upload Preset','err');document.getElementById('cl-fields').classList.add('open');return;}
+  const w=works.find(x=>x.id===selectedId);
+  if(!w||!w.image){setCloudStatus('Please upload a local image first','err');return;}
+  if(w.image.startsWith('http')){setCloudStatus('Already an online URL','ok');return;}
+  const btn=document.querySelector('.upload-cloud-btn');
+  btn.disabled=true;btn.textContent='Uploading...';setCloudStatus('','');
+  try{
+    const res=await fetch(w.image);const blob=await res.blob();
+    const form=new FormData();form.append('file',blob);form.append('upload_preset',preset);
+    const resp=await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,{method:'POST',body:form});
+    const data=await resp.json();
+    if(data.secure_url){upd('image',data.secure_url);const prev=document.getElementById('preview-img');if(prev)prev.src=data.secure_url;setCloudStatus('Uploaded ✓  URL updated','ok');showToast('Uploaded to Cloudinary');}
+    else{setCloudStatus('Failed: '+(data.error?.message||'unknown error'),'err');}
+  }catch(e){setCloudStatus('Network error: '+e.message,'err');}
+  finally{btn.disabled=false;btn.textContent='Upload to Cloudinary ↑';}
+}
+
+function setCloudStatus(msg,type){const el=document.getElementById('cloud-status');if(el){el.textContent=msg;el.className='cloud-status '+type;}}
+
+function addWork(){
+  const id='work_'+Date.now();
+  works.push({id,title:'New Work',year:String(new Date().getFullYear()),category:'main',meta:'',desc:'',image:'',position:[0,1.5,-8],size:[3,2]});
+  renderList();selectWork(id);showToast('New work added');
+}
+
+function deleteWork(id,e){
+  e.stopPropagation();
+  const w=works.find(x=>x.id===id);
+  if(!confirm(`Delete "${w?.title||'this work'}"?`)) return;
+  works=works.filter(x=>x.id!==id);
+  if(selectedId===id){selectedId=null;document.getElementById('editor').innerHTML='<div class="empty-state"><span style="font-size:24px;opacity:0.2">←</span><span>Click a work to edit</span></div>';}
+  renderList();showToast('Deleted');
+}
+
+function exportJSON(){
+  const exportData=works.map(w=>({...w,image:w.image?.startsWith('data:')?'':(w.image||'')}));
+  const blob=new Blob([JSON.stringify(exportData,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='works.json';a.click();
+  const btn=document.getElementById('save-btn');btn.textContent='Exported ✓';btn.classList.add('saved');
+  setTimeout(()=>{btn.textContent='Export works.json';btn.classList.remove('saved');},2500);
+  showToast('works.json downloaded — replace old file and push to GitHub');
+}
+
+function loadFromFile(){ document.getElementById('import-input').click(); }
+
+function handleImport(input){
+  const file=input.files[0];if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!Array.isArray(data)) throw new Error('Invalid format');
+      works=data;selectedId=null;renderList();
+      document.getElementById('editor').innerHTML='<div class="empty-state"><span style="font-size:24px;opacity:0.2">←</span><span>Imported '+works.length+' works</span></div>';
+      showToast('Imported '+works.length+' works');
+    }catch(err){alert('Import failed: '+err.message);}
+  };
+  reader.readAsText(file);input.value='';
+}
+
+function esc(str){return(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+renderList();
+</script>
+</body>
+</html>

@@ -1,0 +1,617 @@
+/* =============================================
+   COLOR TOKENS — 粽 · 灰 · 白
+   ============================================= */
+:root {
+  --zong:       #7B5535;
+  --zong-mid:   #C4A882;
+  --zong-pale:  #EDE3D8;
+  --gray-dark:  #3A3A3A;
+  --gray-mid:   #7A7A7A;
+  --gray-line:  #D6D6D6;
+  --gray-bg:    #F0EDEA;
+  --white:      #FFFFFF;
+}
+
+/* =============================================
+   RESET & BASE
+   ============================================= */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 18px; }
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: var(--gray-bg);
+  color: var(--gray-dark);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 28px 16px 64px;
+}
+
+/* =============================================
+   APP WRAPPER
+   ============================================= */
+.app-wrapper {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* =============================================
+   HEADER
+   ============================================= */
+.app-header {
+  padding: 28px 24px 22px;
+  background: var(--white);
+  border-bottom: 3px solid var(--zong);
+}
+
+.app-header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--zong);
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--gray-mid);
+  line-height: 1.5;
+}
+
+/* =============================================
+   COLLAPSIBLE CARDS (details/summary)
+   ============================================= */
+.collapsible-card {
+  background: var(--white);
+  border-left: 4px solid var(--zong-mid);
+}
+
+.collapsible-summary {
+  padding: 14px 18px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gray-mid);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.collapsible-summary::-webkit-details-marker { display: none; }
+
+.collapsible-summary::after {
+  content: '+';
+  font-size: 1rem;
+  color: var(--zong-mid);
+}
+
+details[open] .collapsible-summary::after { content: '−'; }
+
+.collapsible-body {
+  padding: 4px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* =============================================
+   FORM ELEMENTS
+   ============================================= */
+.input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.text-input, .notes-input, .date-input {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 0.95rem;
+  color: var(--gray-dark);
+  background: var(--gray-bg);
+  border: 1px solid var(--gray-line);
+  border-radius: 3px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.text-input:focus, .notes-input:focus, .date-input:focus {
+  border-color: var(--zong);
+}
+
+.text-input { flex: 1; }
+
+.notes-input {
+  width: 100%;
+  resize: vertical;
+  min-height: 60px;
+}
+
+.field-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--gray-mid);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.field-desc {
+  font-size: 0.9rem;
+  color: var(--gray-mid);
+  line-height: 1.5;
+}
+
+.field-note {
+  font-size: 0.82rem;
+  color: var(--gray-mid);
+  min-height: 1em;
+}
+
+.field-note.saved {
+  color: var(--zong);
+  font-weight: 600;
+}
+
+/* =============================================
+   CONDITIONS CHECKBOXES
+   ============================================= */
+.conditions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
+}
+
+.condition-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  color: var(--gray-dark);
+  cursor: pointer;
+}
+
+.condition-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--zong);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* =============================================
+   BUTTONS
+   ============================================= */
+.primary-btn {
+  width: 100%;
+  padding: 17px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  background: var(--zong);
+  color: var(--white);
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.primary-btn:hover    { background: var(--gray-dark); }
+.primary-btn:active   { transform: scale(0.99); }
+.primary-btn:disabled { background: var(--gray-mid); cursor: default; }
+
+.small-btn {
+  padding: 10px 18px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: var(--zong);
+  color: var(--white);
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+  align-self: flex-start;
+}
+
+.small-btn:hover { background: var(--gray-dark); }
+
+.ghost-btn {
+  background: none;
+  border: 1px solid var(--gray-line);
+  color: var(--gray-mid);
+  font-size: 0.9rem;
+  padding: 9px 22px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.ghost-btn:hover {
+  border-color: var(--zong);
+  color: var(--zong);
+}
+
+.ghost-btn.full-width {
+  width: calc(100% - 36px);
+  margin: 16px 18px 18px;
+  padding: 14px;
+  text-align: center;
+  display: block;
+}
+
+/* =============================================
+   TABS
+   ============================================= */
+.tab-nav {
+  display: flex;
+  background: var(--white);
+  border-bottom: 2px solid var(--gray-line);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 14px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  background: none;
+  border: none;
+  color: var(--gray-mid);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.tab-btn.active {
+  color: var(--zong);
+  border-bottom-color: var(--zong);
+}
+
+.tab-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* =============================================
+   UPLOAD SECTION
+   ============================================= */
+.upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.upload-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 170px;
+  background: var(--white);
+  border: 2px dashed var(--zong-mid);
+  cursor: pointer;
+  padding: 32px 24px;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.upload-label:hover, .upload-label:focus-within {
+  background: var(--zong-pale);
+  border-color: var(--zong);
+}
+
+.upload-text {
+  font-size: 1rem;
+  color: var(--gray-mid);
+  text-align: center;
+  line-height: 1.7;
+}
+
+.preview-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+#previewImage {
+  width: 100%;
+  max-height: 290px;
+  object-fit: cover;
+  border: 1px solid var(--gray-line);
+}
+
+/* =============================================
+   LOADING
+   ============================================= */
+.loading-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 32px;
+  background: var(--white);
+}
+
+.loading-block p { font-size: 0.95rem; color: var(--gray-mid); }
+
+.spinner {
+  width: 42px;
+  height: 42px;
+  border: 4px solid var(--zong-pale);
+  border-top-color: var(--zong);
+  border-radius: 50%;
+  animation: spin 0.85s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* =============================================
+   RESULT CARD
+   ============================================= */
+.result-card {
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+}
+
+.result-row { padding: 20px 20px 18px; }
+
+.result-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--gray-mid);
+  margin-bottom: 7px;
+}
+
+.result-row p {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--gray-dark);
+}
+
+.encouragement-row { background: var(--zong-pale); }
+.encouragement-row .result-label { color: var(--zong); }
+
+.saved-note {
+  font-size: 0.82rem;
+  color: var(--zong);
+  padding: 0 20px;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.divider { height: 1px; background: var(--gray-line); }
+
+/* =============================================
+   ERROR BANNER
+   ============================================= */
+.error-banner {
+  background: var(--white);
+  border-left: 4px solid var(--gray-mid);
+  padding: 16px 18px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--gray-dark);
+}
+
+/* =============================================
+   GENERIC CARD
+   ============================================= */
+.card {
+  background: var(--white);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--zong);
+}
+
+/* =============================================
+   CALENDAR
+   ============================================= */
+.cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cal-month-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gray-dark);
+}
+
+.cal-arrow {
+  background: none;
+  border: 1px solid var(--gray-line);
+  color: var(--gray-mid);
+  font-size: 1.4rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.cal-arrow:hover { border-color: var(--zong); color: var(--zong); }
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.cal-day-header {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gray-mid);
+  text-align: center;
+  padding: 6px 0 8px;
+}
+
+.cal-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 2px 6px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.15s;
+  min-height: 48px;
+  gap: 4px;
+}
+
+.cal-cell:hover    { background: var(--zong-pale); }
+.cal-cell.empty    { cursor: default; pointer-events: none; }
+
+.cal-cell.today .cal-day-num {
+  color: var(--zong);
+  font-weight: 700;
+  border-bottom: 2px solid var(--zong);
+}
+
+.cal-cell.selected { background: var(--zong); }
+.cal-cell.selected .cal-day-num { color: var(--white); font-weight: 700; }
+
+.cal-day-num {
+  font-size: 0.9rem;
+  color: var(--gray-dark);
+  line-height: 1;
+}
+
+.cal-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--zong-mid);
+  flex-shrink: 0;
+}
+
+.cal-cell.selected .cal-dot { background: var(--white); opacity: 0.7; }
+
+/* =============================================
+   DAY DETAIL
+   ============================================= */
+.day-detail-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gray-dark);
+}
+
+.no-meals {
+  font-size: 0.95rem;
+  color: var(--gray-mid);
+  padding: 8px 0;
+}
+
+.history-meal-card {
+  border-left: 3px solid var(--zong-mid);
+  padding: 12px 14px;
+  background: var(--gray-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.hm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.hm-type {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--zong);
+}
+
+.hm-time {
+  font-size: 0.8rem;
+  color: var(--gray-mid);
+}
+
+.hm-desc {
+  font-size: 0.95rem;
+  color: var(--gray-dark);
+  line-height: 1.6;
+}
+
+.hm-tip, .hm-good {
+  font-size: 0.88rem;
+  color: var(--gray-mid);
+  line-height: 1.5;
+}
+
+.hm-tip strong, .hm-good strong { color: var(--gray-dark); }
+
+/* =============================================
+   REPORT
+   ============================================= */
+.date-range-row {
+  display: flex;
+  gap: 12px;
+}
+
+.date-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.date-input {
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+.report-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--zong);
+  margin-bottom: 12px;
+}
+
+.report-body p {
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: var(--gray-dark);
+  margin-bottom: 10px;
+}
+
+.report-body p.report-heading {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--zong);
+  margin-top: 16px;
+  margin-bottom: 5px;
+}
+
+/* =============================================
+   UTILITY
+   ============================================= */
+[hidden] { display: none !important; }

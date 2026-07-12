@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Balcony Is Not Your Whole World — Tianyu Zhang</title>
+  <style>
+    body {
+      font-family: monospace;
+      color: #111;
+      margin: 0;
+      padding: 4rem 1.5rem;
+    }
+    a { color: #111; }
+    .back {
+      position: fixed;
+      top: 1.5rem;
+      left: 1.5rem;
+      font-size: 0.8rem;
+      color: #555;
+      text-decoration: none;
+    }
+    .back:hover { color: #111; }
+    .piece {
+      max-width: 650px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    h1 {
+      font-size: 1.2rem;
+      margin: 0 0 1rem;
+    }
+    .meta {
+      margin-bottom: 2rem;
+      color: #555;
+      font-size: 0.8rem;
+      line-height: 1.6;
+    }
+    .photo-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .photo-stack img {
+      max-width: 100%;
+      display: block;
+      margin: 0 0 2rem;
+    }
+  </style>
+</head>
+<body>
+  <a class="back" id="back-link" href="../work.html">← back to work</a>
+  <div class="piece">
+    <h1>Balcony Is Not Your Whole World</h1>
+    <div class="meta">
+      <p>2025</p>
+    </div>
+    <div class="photo-stack">
+      <img src="../work/balcony_is_not_your_whole_world/1.png" alt="Balcony Is Not Your Whole World">
+      <img src="../work/balcony_is_not_your_whole_world/2.png" alt="Balcony Is Not Your Whole World">
+      <img src="../work/balcony_is_not_your_whole_world/11.png" alt="Balcony Is Not Your Whole World">
+    </div>
+  </div>
+  <script>
+    if (new URLSearchParams(window.location.search).get('from') === 'home') {
+      const backLink = document.getElementById('back-link');
+      backLink.href = '../index.html';
+      backLink.textContent = '← back to home';
+    }
+  </script>
+  <script src="../cursor-trail.js"></script>
+</body>
+</html>

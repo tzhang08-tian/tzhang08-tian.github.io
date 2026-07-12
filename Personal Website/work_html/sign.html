@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign — Tianyu Zhang</title>
+  <style>
+    body {
+      font-family: monospace;
+      color: #111;
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+    }
+    a { color: #111; }
+    .back {
+      position: fixed;
+      top: 1.5rem;
+      left: 1.5rem;
+      font-size: 0.8rem;
+      color: #555;
+      text-decoration: none;
+      z-index: 1;
+    }
+    .back:hover { color: #111; }
+    .left-col {
+      flex-shrink: 0;
+      padding: 4rem 3rem 2rem 9rem;
+      overflow: hidden;
+    }
+    .piece {
+      max-width: 600px;
+    }
+    h1 {
+      font-size: 1.2rem;
+      margin: 0 0 1rem;
+    }
+    img {
+      max-width: 100%;
+      display: block;
+    }
+    .photo-viewer {
+      position: relative;
+      width: 100%;
+      margin: 2.7rem 0;
+    }
+    .photo-box {
+      width: 100%;
+      aspect-ratio: 1702 / 1328;
+    }
+    .photo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .photo-arrow {
+      position: absolute;
+      top: 50%;
+      font-size: 2.2rem;
+      color: #ddd;
+      cursor: pointer;
+      user-select: none;
+      line-height: 1;
+      transform: translateY(-50%) scaleY(2.8);
+    }
+    .photo-arrow:hover { color: #bbb; }
+    .photo-arrow.prev { left: -2rem; }
+    .photo-arrow.next { right: -2rem; }
+    .meta {
+      margin-top: 1rem;
+      color: #555;
+      font-size: 0.8rem;
+      line-height: 1.6;
+    }
+    .right-col {
+      flex: 1;
+      padding: 0 7rem 2rem 0rem;
+      overflow-y: auto;
+    }
+    .intro {
+      max-width: 350px;
+      line-height: 1.8;
+      text-align: center;
+      margin: 0 auto;
+    }
+    .intro p { margin: 2rem 0; }
+  </style>
+</head>
+<body>
+  <a class="back" id="back-link" href="../work.html">← back to work</a>
+  <div class="left-col">
+    <div class="piece">
+      <h1>Sign</h1>
+      <div class="photo-viewer">
+        <div class="photo-box">
+          <img id="piece-img" src="../work/sign/1.png" alt="Sign">
+        </div>
+        <span class="photo-arrow prev" id="prev-photo">&lt;</span>
+        <span class="photo-arrow next" id="next-photo">&gt;</span>
+      </div>
+      <div class="meta">
+        <p>2026</p>
+        <p>Material: PenPlotter, Mulberry Paper, Ink</p>
+        <p>Size: 5cm x 10cm </p>
+      </div>
+    </div>
+  </div>
+  <div class="right-col">
+    <div class="intro">
+      <p><small>This work was drawn by a machine on mulberry paper. I act as a threshold, controlling the computer's input and changing the types of pens used throughout the process.</small></p>
+      <p><small>Beneath Ableton's impeccably ordered red interface lies a landscape of emotional disorder. Different layers interfere with and bleed into one another: the irregular strokes of pencil interrupt the absorption of red ink, while black marker spreads across the paper, obscuring and overtaking the red.</small></p>
+      <p><small>The inner world of contemporary individuals resembles this interface—structured, yet constantly vulnerable to disruption. We continuously test the possibility of crossing boundaries from within systems of rules, while simultaneously exercising self-control and experiencing moments of collapse.</small></p>
+    </div>
+  </div>
+  <script>
+    if (new URLSearchParams(window.location.search).get('from') === 'home') {
+      const backLink = document.getElementById('back-link');
+      backLink.href = '../index.html';
+      backLink.textContent = '← back to home';
+    }
+
+    function alignIntroWithPhoto() {
+      const photoTop = document.querySelector('.photo-viewer').getBoundingClientRect().top;
+      document.querySelector('.intro').style.marginTop = photoTop + 'px';
+    }
+    window.addEventListener('load', alignIntroWithPhoto);
+
+    const photos = ['1.png', '2.png', '3.png'];
+    let photoIndex = 0;
+    const pieceImg = document.getElementById('piece-img');
+    function updatePhoto() {
+      pieceImg.src = '../work/sign/' + photos[photoIndex];
+    }
+    document.getElementById('prev-photo').addEventListener('click', () => {
+      photoIndex = (photoIndex - 1 + photos.length) % photos.length;
+      updatePhoto();
+    });
+    document.getElementById('next-photo').addEventListener('click', () => {
+      photoIndex = (photoIndex + 1) % photos.length;
+      updatePhoto();
+    });
+  </script>
+  <script src="../cursor-trail.js"></script>
+</body>
+</html>

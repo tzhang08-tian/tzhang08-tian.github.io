@@ -6,7 +6,7 @@
 <title>CrazyFood</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&family=Lobster&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@200;300&family=Special+Elite&family=Lobster&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -102,7 +102,25 @@ input[type=password]:focus { border-color: var(--gray-mid); }
   -webkit-text-stroke: 1.2px #111;
   paint-order: stroke fill;
   cursor: default; user-select: none;
+  filter: url(#retro-text-filter);
 }
+/* Nutrient fact hint — shown top-center when hovering a placeholder letter */
+#ph-nutrient-hint {
+  position: absolute;
+  top: 1.6rem; left: 50%;
+  transform: translateX(-50%);
+  max-width: 70%;
+  text-align: center;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+#ph-nutrient-hint.show { opacity: 1; }
+#ph-nutrient-hint b { color: #777; }
 .ph-char {
   display: inline-block;
   animation: phFloat var(--pf-d, 3s) ease-in-out infinite var(--pf-a, 0s),
@@ -207,6 +225,8 @@ input[type=password]:focus { border-color: var(--gray-mid); }
   display: inline-block;
   animation: charFloat var(--cd, 2.5s) ease-in-out infinite var(--ca, 0s);
   scale: var(--sq-x, 1) 1;
+  translate: var(--sq-tx, 0px) 0;
+  transform-origin: left center;
 }
 .speech-char.reading {
   color: #e03020 !important;
@@ -787,9 +807,10 @@ button.ghost:hover { border-color: var(--border-hi); color: #333; }
   flex-shrink: 0;
 }
 #lib-overlay-title {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 800;
   font-size: 22px;
-  letter-spacing: .22em;
+  letter-spacing: .10em;
   color: rgba(255,255,255,.85);
 }
 #lib-close-btn {
@@ -990,6 +1011,18 @@ button.ghost:hover { border-color: var(--border-hi); color: #333; }
 </head>
 <body>
 
+<!-- Retro-effect filter for the placeholder text — driven by #retro-ctrl sliders, mirrors RetroShader -->
+<svg width="0" height="0" style="position:absolute;overflow:hidden" aria-hidden="true">
+  <defs>
+    <filter id="retro-text-filter" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
+      <feGaussianBlur id="ph-blur" in="SourceGraphic" stdDeviation="0" result="ph-blurred"/>
+      <feMorphology id="ph-morph" in="ph-blurred" operator="dilate" radius="0" result="ph-morphed"/>
+      <feTurbulence id="ph-turb" type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="7" result="ph-noise"/>
+      <feDisplacementMap id="ph-displace" in="ph-morphed" in2="ph-noise" scale="0" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
 <!-- Food Card button — top center, shown after results load -->
 <button id="card-btn">generate food card <span class="cb-arrow">→</span></button>
 
@@ -1095,6 +1128,7 @@ button.ghost:hover { border-color: var(--border-hi); color: #333; }
   <div class="char-panel">
     <div class="placeholder" id="placeholder">
       <div id="placeholder-text"></div>
+      <div id="ph-nutrient-hint"></div>
     </div>
     <canvas id="shadow-canvas"></canvas>
     <div id="three-mount"></div>
@@ -1112,6 +1146,7 @@ button.ghost:hover { border-color: var(--border-hi); color: #333; }
       <label>levels <input type="range" id="r-levels" min="2" max="8" step="1" value="4"></label>
       <label>dots <input type="range" id="r-dots" min="0" max="16" step="1" value="0"></label>
       <label>crystal <input type="range" id="r-crystal" min="0" max="60" step="1" value="0"></label>
+      <label>blur <input type="range" id="r-blur" min="0" max="20" step="1" value="0"></label>
     </div>
   </div>
 
@@ -1145,6 +1180,7 @@ import { OrbitControls }  from 'three/addons/controls/OrbitControls.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass }     from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass }     from 'three/addons/postprocessing/ShaderPass.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 const PRESET_FACES = [
   'faces/1.jpg','faces/2.jpg','faces/3.jpg','faces/4.jpg',
@@ -1174,16 +1210,18 @@ let dotSizeCur = 8, dotSizeTarget = 8;
 let crystalCur = 0, crystalTarget = 0;
 let crystalSizeCur = 12, crystalSizeTarget = 12;
 let crystalTimeout = null;
+let blurCur = 0, blurTarget = 0;
+let blurTimeout = null;
 let speechScrollOff = 0;
 let textColorCur = 0, textColorTarget = 0, bgFrameCount = 0;
 let textLayout = 'left'; // 'left' | 'topbottom'
 const sliderDragging   = new Set(); // ids of sliders currently held by user
 const sliderAutoMoving = new Set(); // ids of sliders moving due to auto-randomize
 // Rolling rotation: accumulated angle per slider, driven by value delta each frame
-const sliderRot  = { 'r-pixel': 0, 'r-levels': 0, 'r-dots': 0, 'r-crystal': 0 };
-const sliderPrev = { 'r-pixel': 6, 'r-levels': 4, 'r-dots': 0, 'r-crystal': 0 };
+const sliderRot  = { 'r-pixel': 0, 'r-levels': 0, 'r-dots': 0, 'r-crystal': 0, 'r-blur': 0 };
+const sliderPrev = { 'r-pixel': 6, 'r-levels': 4, 'r-dots': 0, 'r-crystal': 0, 'r-blur': 0 };
 // Degrees per unit — physics-based (track=72px, thumb=12px sq, circ≈37.7px)
-const sliderDeg  = { 'r-pixel': 49, 'r-levels': 115, 'r-dots': 43, 'r-crystal': 22 };
+const sliderDeg  = { 'r-pixel': 49, 'r-levels': 115, 'r-dots': 43, 'r-crystal': 22, 'r-blur': 34 };
 // Rainbow state — driven by a dedicated RAF loop while any slider is dragging
 let rainbowHue = 0;
 let rainbowRaf = null;
@@ -1251,6 +1289,7 @@ const RetroShader = {
     dotSize:     { value: 8.0  },
     crystalize:  { value: 0.0  },
     crystalSize: { value: 12.0 },
+    blurAmount:  { value: 0.0  },
   },
   vertexShader: `
     varying vec2 vUv;
@@ -1266,12 +1305,28 @@ const RetroShader = {
     uniform float dotSize;
     uniform float crystalize;
     uniform float crystalSize;
+    uniform float blurAmount;
     varying vec2 vUv;
 
     // Pseudo-random 2-D hash for Voronoi seed placement
     vec2 voronoiHash(vec2 p) {
       p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
       return fract(sin(p) * 43758.5453);
+    }
+
+    // 5×5 weighted-tap Gaussian blur — radius (in px) grows with blurAmount
+    vec4 gaussianSample(sampler2D tex, vec2 uv, vec2 res, float radiusPx) {
+      vec2  texel = radiusPx / res;
+      vec4  sum   = vec4(0.0);
+      float wsum  = 0.0;
+      for (int x = -2; x <= 2; x++) {
+        for (int y = -2; y <= 2; y++) {
+          float w = exp(-float(x*x + y*y) / 6.0);
+          sum  += texture2D(tex, uv + vec2(float(x), float(y)) * texel) * w;
+          wsum += w;
+        }
+      }
+      return sum / wsum;
     }
 
     // Halftone dot mask: returns 1.0 if this fragment is inside a channel dot
@@ -1287,7 +1342,9 @@ const RetroShader = {
       // ── Retro pass ──────────────────────────────────────────────────────
       vec2 block = pixelSize / resolution;
       vec2 uv    = block * floor(vUv / block);
-      vec4 col   = texture2D(tDiffuse, uv);
+      // Gaussian blur softens the source before retro/halftone/crystal stylize it
+      vec4 col   = blurAmount > 0.05 ? gaussianSample(tDiffuse, uv, resolution, blurAmount)
+                                     : texture2D(tDiffuse, uv);
       float lum  = dot(col.rgb, vec3(0.299, 0.587, 0.114));
       col.rgb    = mix(vec3(lum), col.rgb, saturation);
       col.rgb    = clamp(col.rgb, 0.0, 1.0);
@@ -1402,9 +1459,12 @@ document.getElementById('r-crystal').addEventListener('input', e => {
     crystalTarget = crystalCur = 1;
   }
 });
+document.getElementById('r-blur').addEventListener('input', e => {
+  blurCur = blurTarget = +e.target.value;
+});
 
 // Drag-state: add .dragging class while any slider thumb is held
-['r-pixel', 'r-levels', 'r-dots', 'r-crystal'].forEach(id => {
+['r-pixel', 'r-levels', 'r-dots', 'r-crystal', 'r-blur'].forEach(id => {
   document.getElementById(id).addEventListener('mousedown', () => {
     sliderDragging.add(id);
     document.getElementById(id).classList.add('dragging');
@@ -1437,38 +1497,132 @@ document.getElementById('left-scroll-zone').addEventListener('wheel', e => {
 }, { passive: false });
 
 // Auto-randomize retro values on a random 3–10 s interval with smooth slide.
-// ~25% passthrough | ~20% color halftone | ~55% retro pixel/levels
+// ~18% passthrough | ~16% color halftone | ~20% retro pixel | ~20% crystallize | ~26% blur
 function scheduleRetroRandomize() {
   const delay = (Math.random() * 7 + 3) * 1000;
   setTimeout(() => {
     if (cardViewActive) { scheduleRetroRandomize(); return; }
     const r = Math.random();
-    if (r < 0.20) {
+    if (r < 0.18) {
       // Passthrough: shader becomes identity
       pixelTarget    = 1;   levelsTarget   = 255;
-      halftoneTarget = 0;   crystalTarget  = 0;
-    } else if (r < 0.38) {
+      halftoneTarget = 0;   crystalTarget  = 0;   blurTarget = 0;
+    } else if (r < 0.34) {
       // Color halftone
       pixelTarget    = 1;   levelsTarget   = 255;
-      halftoneTarget = 1;   crystalTarget  = 0;
+      halftoneTarget = 1;   crystalTarget  = 0;   blurTarget = 0;
       dotSizeTarget  = Math.floor(Math.random() * 12 + 4);
-    } else if (r < 0.58) {
+    } else if (r < 0.54) {
       // Retro pixel + quantization
       pixelTarget    = Math.floor(Math.random() * 15 + 2);
       levelsTarget   = Math.floor(Math.random() * 7  + 2);
-      halftoneTarget = 0;   crystalTarget  = 0;
-    } else {
+      halftoneTarget = 0;   crystalTarget  = 0;   blurTarget = 0;
+    } else if (r < 0.74) {
       // Crystallize — auto-clears after 3 s max
       pixelTarget    = 1;   levelsTarget   = Math.floor(Math.random() * 6 + 2);
-      halftoneTarget = 0;   crystalTarget  = 1;
+      halftoneTarget = 0;   crystalTarget  = 1;   blurTarget = 0;
       crystalSizeTarget = Math.floor(Math.random() * 50 + 5);
       clearTimeout(crystalTimeout);
       crystalTimeout = setTimeout(() => { crystalTarget = 0; }, 3000);
+    } else {
+      // Gaussian blur — auto-clears after 3 s max, same pattern as crystallize
+      pixelTarget    = 1;   levelsTarget   = 255;
+      halftoneTarget = 0;   crystalTarget  = 0;
+      blurTarget = Math.floor(Math.random() * 14 + 4);
+      clearTimeout(blurTimeout);
+      blurTimeout = setTimeout(() => { blurTarget = 0; }, 3000);
     }
     scheduleRetroRandomize();
   }, delay);
 }
 scheduleRetroRandomize();
+
+// ── Retro effects loop — always running (even before a model is loaded),
+// drives both the 3D model's shader (when present) and the homepage
+// placeholder text, so #retro-ctrl affects both "in the same form" ─────────
+function updateRetroEffects() {
+  // Lerp retro values toward their targets (~2 s transition at 60 fps)
+  pixelCur      += (pixelTarget      - pixelCur)      * 0.025;
+  levelsCur     += (levelsTarget     - levelsCur)     * 0.025;
+  halftoneCur   += (halftoneTarget   - halftoneCur)   * 0.025;
+  dotSizeCur    += (dotSizeTarget    - dotSizeCur)    * 0.025;
+  crystalCur    += (crystalTarget    - crystalCur)    * 0.18;
+  crystalSizeCur+= (crystalSizeTarget- crystalSizeCur)* 0.18;
+  blurCur       += (blurTarget       - blurCur)       * 0.07;
+  if (retroPass) {
+    retroPass.uniforms.pixelSize.value   = pixelCur;
+    retroPass.uniforms.levels.value      = levelsCur;
+    retroPass.uniforms.halftone.value    = halftoneCur;
+    retroPass.uniforms.dotSize.value     = dotSizeCur;
+    retroPass.uniforms.crystalize.value  = crystalCur;
+    retroPass.uniforms.crystalSize.value = Math.max(2, crystalSizeCur);
+    retroPass.uniforms.blurAmount.value  = blurCur;
+  }
+
+  // Mirror lerped values back to sliders so the thumb slides smoothly during auto-changes
+  if (!sliderDragging.has('r-pixel'))   document.getElementById('r-pixel').value   = Math.round(Math.max(2, pixelCur));
+  if (!sliderDragging.has('r-levels'))  document.getElementById('r-levels').value  = Math.round(Math.max(2, levelsCur));
+  if (!sliderDragging.has('r-dots'))    document.getElementById('r-dots').value    = Math.round(halftoneCur * dotSizeCur);
+  if (!sliderDragging.has('r-crystal')) document.getElementById('r-crystal').value = crystalCur < 0.05 ? 0 : Math.round(crystalSizeCur);
+  if (!sliderDragging.has('r-blur'))    document.getElementById('r-blur').value    = Math.round(Math.max(0, blurCur));
+
+  // Roll each thumb: accumulate rotation proportional to value delta (right=CW, left=CCW)
+  // Also drive rainbow color for auto-movement (not just user drag)
+  ['r-pixel', 'r-levels', 'r-dots', 'r-crystal', 'r-blur'].forEach(id => {
+    const el  = document.getElementById(id);
+    const cur = +el.value;
+    const delta = cur - sliderPrev[id];
+    sliderPrev[id] = cur;
+    sliderRot[id] += delta * sliderDeg[id];
+    el.style.setProperty('--thumb-rot', sliderRot[id].toFixed(1) + 'deg');
+
+    if (!sliderDragging.has(id)) {
+      // Check underlying float convergence, not integer delta (delta is 0 most lerp frames)
+      const isMoving = id === 'r-pixel'
+        ? Math.abs(pixelCur - pixelTarget) > 0.15
+        : id === 'r-levels'
+        ? Math.abs(levelsCur - levelsTarget) > 0.15
+        : id === 'r-dots'
+        ? Math.abs(halftoneCur - halftoneTarget) > 0.01 || Math.abs(dotSizeCur - dotSizeTarget) > 0.15
+        : id === 'r-crystal'
+        ? Math.abs(crystalCur - crystalTarget) > 0.01 || Math.abs(crystalSizeCur - crystalSizeTarget) > 0.15
+        : Math.abs(blurCur - blurTarget) > 0.15;
+      if (isMoving) {
+        sliderAutoMoving.add(id);
+        if (!rainbowRaf) rainbowRaf = requestAnimationFrame(rainbowLoop);
+      } else if (sliderAutoMoving.has(id)) {
+        sliderAutoMoving.delete(id);
+        el.style.removeProperty('--thumb-bg');
+        el.style.removeProperty('--thumb-glow');
+      }
+    }
+  });
+
+  applyPlaceholderRetro();
+}
+
+// Apply the same retro values to the homepage placeholder text via an SVG
+// filter (#retro-text-filter) plus a halftone-dot overlay — same lerped
+// state (pixelCur/halftoneCur/dotSizeCur/crystalCur/crystalSizeCur/blurCur)
+// that drives RetroShader's uniforms for the 3D model.
+function applyPlaceholderRetro() {
+  // pixel → blocky dilation
+  const dilateR = Math.max(0, (pixelCur - 2) * 0.16);
+  document.getElementById('ph-morph')?.setAttribute('radius', dilateR.toFixed(2));
+
+  // blur → direct Gaussian blur, same units as the shader's blurAmount
+  document.getElementById('ph-blur')?.setAttribute('stdDeviation', Math.max(0, blurCur).toFixed(2));
+
+  // crystal → turbulence-driven displacement (shatter/warp)
+  document.getElementById('ph-displace')?.setAttribute('scale', (crystalCur * 14).toFixed(1));
+  const freq = 1 / Math.max(4, crystalSizeCur * 4);
+  document.getElementById('ph-turb')?.setAttribute('baseFrequency', freq.toFixed(4));
+}
+
+(function retroLoop() {
+  updateRetroEffects();
+  requestAnimationFrame(retroLoop);
+})();
 
 // ── Pipeline ──────────────────────────────────────────────────────────────
 async function handleFile(file) {
@@ -2075,6 +2229,163 @@ function buildVitaminHexagons(vitaminNorm, surfacePts) {
   scene.add(im); extraMeshes.push(im);
 }
 
+// Build a flat ring (annulus) Shape — an outer circle with a smaller circular hole
+function makeRingShape(outerR, innerR) {
+  const shape = new THREE.Shape();
+  shape.absarc(0, 0, outerR, 0, Math.PI * 2, false);
+  const hole = new THREE.Path();
+  hole.absarc(0, 0, innerR, 0, Math.PI * 2, true);
+  shape.holes.push(hole);
+  return shape;
+}
+
+// Carb rings: flat hollow rings (donuts) with a little thickness, in varying
+// shades of blue, sitting on the surface
+function buildCarbRings(carbsNorm, surfacePts) {
+  const count  = Math.round(nlerp(8, 70, carbsNorm));
+  const outerR = nlerp(0.07, 0.17, carbsNorm);
+  const shape  = makeRingShape(outerR, outerR * 0.45);
+  const geo    = new THREE.ExtrudeGeometry(shape, { depth: 0.025, bevelEnabled: false });
+  geo.rotateX(-Math.PI / 2); // flat face points +Y, like the vitamin stars
+  // Dummy per-vertex color (all white) so USE_COLOR is a no-op multiply,
+  // letting per-instance colors (instanceColor) shine through unmodified.
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(geo.attributes.position.count * 3).fill(1), 3));
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0xffffff, vertexColors: true,
+    roughness: 0.40, metalness: 0.20, flatShading: true,
+  });
+  const im  = new THREE.InstancedMesh(geo, mat, count);
+  const d   = new THREE.Object3D();
+  const up  = new THREE.Vector3(0, 1, 0);
+  const col = new THREE.Color();
+  for (let i = 0; i < count; i++) {
+    const sp   = surfacePts[Math.floor(Math.random() * surfacePts.length)];
+    const norm = sp.clone().normalize();
+    d.position.copy(norm).multiplyScalar(sp.length() + 0.015);
+    d.quaternion.setFromUnitVectors(up, norm); // flat face points outward along surface normal
+    d.rotateY(Math.random() * Math.PI * 2);   // random spin
+    d.updateMatrix();
+    im.setMatrixAt(i, d.matrix);
+
+    // Varying shades of blue — from pale sky-blue to deep navy
+    const t = Math.random();
+    col.setRGB(nlerp(0.55, 0.05, t), nlerp(0.75, 0.20, t), nlerp(1.00, 0.55, t));
+    im.setColorAt(i, col);
+  }
+  im.instanceMatrix.needsUpdate = true;
+  im.instanceColor.needsUpdate  = true;
+  scene.add(im); extraMeshes.push(im);
+}
+
+// Build one merged double-helix geometry: two intertwined tube strands plus a
+// few connecting "rung" cylinders, rooted at y=0 and extending to y=height.
+function buildDoubleHelixGeometry(height, radius, turns, tubeR, rungCount) {
+  const N = 24;
+  const ptsA = [], ptsB = [];
+  for (let i = 0; i <= N; i++) {
+    const t = i / N;
+    const angle = t * turns * Math.PI * 2;
+    const y = t * height;
+    ptsA.push(new THREE.Vector3(Math.cos(angle) * radius, y, Math.sin(angle) * radius));
+    ptsB.push(new THREE.Vector3(Math.cos(angle + Math.PI) * radius, y, Math.sin(angle + Math.PI) * radius));
+  }
+  const tubeA = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(ptsA), 32, tubeR, 5, false);
+  const tubeB = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(ptsB), 32, tubeR, 5, false);
+
+  const rungs = [];
+  const up = new THREE.Vector3(0, 1, 0);
+  for (let i = 0; i < rungCount; i++) {
+    const idx = Math.round((i / (rungCount - 1)) * N);
+    const a = ptsA[idx], b = ptsB[idx];
+    const dir = new THREE.Vector3().subVectors(b, a);
+    const len = dir.length();
+    if (len < 1e-5) continue;
+    dir.normalize();
+    const mid  = new THREE.Vector3().addVectors(a, b).multiplyScalar(0.5);
+    const quat = new THREE.Quaternion().setFromUnitVectors(up, dir);
+    const rung = new THREE.CylinderGeometry(tubeR * 0.8, tubeR * 0.8, len, 5);
+    rung.applyMatrix4(new THREE.Matrix4().compose(mid, quat, new THREE.Vector3(1, 1, 1)));
+    rungs.push(rung);
+  }
+  return mergeGeometries([tubeA, tubeB, ...rungs], false);
+}
+
+// Protein helices: small white double-helix structures standing on the surface
+function buildProteinHelices(proteinNorm, surfacePts) {
+  const count  = Math.round(nlerp(10, 80, proteinNorm));
+  const height = nlerp(0.18, 0.45, proteinNorm);
+  const geo    = buildDoubleHelixGeometry(height, height * 0.18, 2.5, height * 0.045, 5);
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0xffffff, roughness: 0.35, metalness: 0.05, flatShading: true,
+  });
+  const im = new THREE.InstancedMesh(geo, mat, count);
+  const d  = new THREE.Object3D();
+  const up = new THREE.Vector3(0, 1, 0);
+  for (let i = 0; i < count; i++) {
+    const sp   = surfacePts[Math.floor(Math.random() * surfacePts.length)];
+    const norm = sp.clone().normalize();
+    d.position.copy(norm).multiplyScalar(sp.length() + 0.01);
+    d.quaternion.setFromUnitVectors(up, norm); // helix axis points outward along surface normal
+    d.rotateY(Math.random() * Math.PI * 2);   // random spin
+    d.updateMatrix();
+    im.setMatrixAt(i, d.matrix);
+  }
+  im.instanceMatrix.needsUpdate = true;
+  scene.add(im); extraMeshes.push(im);
+}
+
+// Derive a tangent-space normal map from the uploaded photo's luminance so the
+// wrapped model picks up the texture/grain of the actual food surface as bumps,
+// instead of looking like a flat photo glued onto the shape.
+function buildNormalMapFromImage(img, strength = 2.4) {
+  const maxDim = 512;
+  const srcW = img.naturalWidth  || img.width  || 1;
+  const srcH = img.naturalHeight || img.height || 1;
+  const scale = Math.min(1, maxDim / Math.max(srcW, srcH));
+  const w = Math.max(1, Math.round(srcW * scale));
+  const h = Math.max(1, Math.round(srcH * scale));
+
+  const src  = document.createElement('canvas');
+  src.width = w; src.height = h;
+  const sctx = src.getContext('2d');
+  sctx.drawImage(img, 0, 0, w, h);
+  const { data: px } = sctx.getImageData(0, 0, w, h);
+
+  // Grayscale "height" buffer
+  const lum = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) {
+    const o = i * 4;
+    lum[i] = (0.299 * px[o] + 0.587 * px[o + 1] + 0.114 * px[o + 2]) / 255;
+  }
+  const at = (x, y) => lum[Math.min(h - 1, Math.max(0, y)) * w + Math.min(w - 1, Math.max(0, x))];
+
+  const out  = document.createElement('canvas');
+  out.width = w; out.height = h;
+  const octx = out.getContext('2d');
+  const dst  = octx.createImageData(w, h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      // Sobel gradients of the luminance field → surface slope
+      const gx = (at(x+1,y-1) + 2*at(x+1,y) + at(x+1,y+1)) - (at(x-1,y-1) + 2*at(x-1,y) + at(x-1,y+1));
+      const gy = (at(x-1,y+1) + 2*at(x,y+1) + at(x+1,y+1)) - (at(x-1,y-1) + 2*at(x,y-1) + at(x+1,y-1));
+      let nx = -gx * strength, ny = -gy * strength, nz = 1.0;
+      const len = Math.sqrt(nx*nx + ny*ny + nz*nz);
+      nx /= len; ny /= len; nz /= len;
+      const o = (y * w + x) * 4;
+      dst.data[o]     = Math.round((nx * 0.5 + 0.5) * 255);
+      dst.data[o + 1] = Math.round((ny * 0.5 + 0.5) * 255);
+      dst.data[o + 2] = Math.round((nz * 0.5 + 0.5) * 255);
+      dst.data[o + 3] = 255;
+    }
+  }
+  octx.putImageData(dst, 0, 0);
+
+  const tex = new THREE.CanvasTexture(out);
+  tex.colorSpace = THREE.NoColorSpace;
+  tex.needsUpdate = true;
+  return tex;
+}
+
 function buildMesh(img, mount, data) {
   const panelW=mount.clientWidth, panelH=mount.clientHeight;
   camera.position.set(0,0,4.5); camera.aspect=panelW/panelH;
@@ -2093,9 +2404,13 @@ function buildMesh(img, mount, data) {
   const fiberNorm   = Math.min(1, (n.fiber    || 0) / 12);
   const fatNorm     = Math.min(1, (n.fat      || 0) / 30);
   const vitaminNorm = Math.min(1, (n.vitaminC || 0) / 90); // 90 mg ≈ 100 % DV
+  const carbsNorm   = Math.min(1, (n.carbs    || 0) / 60);
+  const proteinNorm = Math.min(1, (n.protein  || 0) / 50); // 50 g ≈ 100 % DV
 
   const tex=new THREE.Texture(img);
   tex.needsUpdate=true; tex.colorSpace=THREE.SRGBColorSpace;
+
+  const normalTex = buildNormalMapFromImage(img);
 
   // Base shape from food category; sugar drives spike intensity
   const cat    = data?.foodCategory || 'carb';
@@ -2132,14 +2447,21 @@ function buildMesh(img, mount, data) {
   }
 
   const mat=new THREE.MeshStandardMaterial({
-    map:tex, roughness:0.82, metalness:0.02, flatShading:true,
+    map:tex, normalMap:normalTex, normalScale:new THREE.Vector2(0.85,0.85),
+    roughness:0.82, metalness:0.02, flatShading:true,
   });
-  if (mesh) { scene.remove(mesh); mesh.geometry.dispose(); mesh.material.map?.dispose(); mesh.material.dispose(); }
+  if (mesh) {
+    scene.remove(mesh); mesh.geometry.dispose();
+    mesh.material.map?.dispose(); mesh.material.normalMap?.dispose();
+    mesh.material.dispose();
+  }
   mesh=new THREE.Mesh(geo,mat); scene.add(mesh);
 
   if (fiberNorm   > 0.06) buildGrass(fiberNorm, surfacePts);
   if (fatNorm     > 0.06) buildFatBlobs(fatNorm, surfacePts);
   if (vitaminNorm > 0.06) buildVitaminHexagons(vitaminNorm, surfacePts);
+  if (carbsNorm   > 0.06) buildCarbRings(carbsNorm, surfacePts);
+  if (proteinNorm > 0.06) buildProteinHelices(proteinNorm, surfacePts);
 }
 
 // ── Shadow — drawn on a plain 2D canvas, never touched by the shader ──────
@@ -2198,58 +2520,6 @@ function startAnimLoop() {
         .addScaledVector(_b,  1.5);  // lower-left fill
     }
 
-    // Lerp retro values toward their targets (~2 s transition at 60 fps)
-    pixelCur      += (pixelTarget      - pixelCur)      * 0.025;
-    levelsCur     += (levelsTarget     - levelsCur)     * 0.025;
-    halftoneCur   += (halftoneTarget   - halftoneCur)   * 0.025;
-    dotSizeCur    += (dotSizeTarget    - dotSizeCur)    * 0.025;
-    crystalCur    += (crystalTarget    - crystalCur)    * 0.18;
-    crystalSizeCur+= (crystalSizeTarget- crystalSizeCur)* 0.18;
-    if (retroPass) {
-      retroPass.uniforms.pixelSize.value   = pixelCur;
-      retroPass.uniforms.levels.value      = levelsCur;
-      retroPass.uniforms.halftone.value    = halftoneCur;
-      retroPass.uniforms.dotSize.value     = dotSizeCur;
-      retroPass.uniforms.crystalize.value  = crystalCur;
-      retroPass.uniforms.crystalSize.value = Math.max(2, crystalSizeCur);
-    }
-
-    // Mirror lerped values back to sliders so the thumb slides smoothly during auto-changes
-    if (!sliderDragging.has('r-pixel'))   document.getElementById('r-pixel').value   = Math.round(Math.max(2, pixelCur));
-    if (!sliderDragging.has('r-levels'))  document.getElementById('r-levels').value  = Math.round(Math.max(2, levelsCur));
-    if (!sliderDragging.has('r-dots'))    document.getElementById('r-dots').value    = Math.round(halftoneCur * dotSizeCur);
-    if (!sliderDragging.has('r-crystal')) document.getElementById('r-crystal').value = crystalCur < 0.05 ? 0 : Math.round(crystalSizeCur);
-
-    // Roll each thumb: accumulate rotation proportional to value delta (right=CW, left=CCW)
-    // Also drive rainbow color for auto-movement (not just user drag)
-    ['r-pixel', 'r-levels', 'r-dots', 'r-crystal'].forEach(id => {
-      const el  = document.getElementById(id);
-      const cur = +el.value;
-      const delta = cur - sliderPrev[id];
-      sliderPrev[id] = cur;
-      sliderRot[id] += delta * sliderDeg[id];
-      el.style.setProperty('--thumb-rot', sliderRot[id].toFixed(1) + 'deg');
-
-      if (!sliderDragging.has(id)) {
-        // Check underlying float convergence, not integer delta (delta is 0 most lerp frames)
-        const isMoving = id === 'r-pixel'
-          ? Math.abs(pixelCur - pixelTarget) > 0.15
-          : id === 'r-levels'
-          ? Math.abs(levelsCur - levelsTarget) > 0.15
-          : id === 'r-dots'
-          ? Math.abs(halftoneCur - halftoneTarget) > 0.01 || Math.abs(dotSizeCur - dotSizeTarget) > 0.15
-          : Math.abs(crystalCur - crystalTarget) > 0.01 || Math.abs(crystalSizeCur - crystalSizeTarget) > 0.15;
-        if (isMoving) {
-          sliderAutoMoving.add(id);
-          if (!rainbowRaf) rainbowRaf = requestAnimationFrame(rainbowLoop);
-        } else if (sliderAutoMoving.has(id)) {
-          sliderAutoMoving.delete(id);
-          el.style.removeProperty('--thumb-bg');
-          el.style.removeProperty('--thumb-glow');
-        }
-      }
-    });
-
     renderShadow2D();
     composer.render();
 
@@ -2302,23 +2572,41 @@ function startAnimLoop() {
           screenRadius = Math.abs(_rp.x - _msp.x) * 0.5 * W;
         }
 
-        // Per-character squish: only chars the model circle actually overlaps
+        // Per-character squish: chars the model circle overlaps shrink AND pull
+        // toward the left, so each text row visibly compresses away from the
+        // model rather than each glyph just shrinking in place (leaving gaps).
+        // Accumulate per-row so later characters close the gap left by earlier ones.
         let maxSquish = 0;
-        document.querySelectorAll('#speech-inner .speech-char').forEach(ch => {
-          const r   = ch.getBoundingClientRect();
-          const cx  = r.left + r.width  / 2;
-          const cy  = r.top  + r.height / 2;
-          const dist = Math.sqrt((mSX - cx) ** 2 + (mSY - cy) ** 2);
-          const penetration = Math.max(0, screenRadius - dist);
-          const targetS = Math.min(1, penetration / 35);
-          const prev = parseFloat(ch.dataset.squish || '0');
-          const next = prev + (targetS - prev) * 0.15;
-          ch.dataset.squish = next;
-          ch.style.setProperty('--sq-x', next > 0.005 ? (1 - next * 0.65).toFixed(3) : '1');
-          if (next > maxSquish) maxSquish = next;
+        document.querySelectorAll('#speech-inner .speech-item-label, #speech-inner .speech-item-body').forEach(line => {
+          let cumShift = 0, rowTop = null;
+          line.querySelectorAll('.speech-char').forEach(ch => {
+            const r   = ch.getBoundingClientRect();
+            const cx  = r.left + r.width  / 2;
+            const cy  = r.top  + r.height / 2;
+            const dist = Math.sqrt((mSX - cx) ** 2 + (mSY - cy) ** 2);
+            const penetration = Math.max(0, screenRadius - dist);
+            const targetS = Math.min(1, penetration / 35);
+            const prev = parseFloat(ch.dataset.squish || '0');
+            // Slow build-up so the compression is clearly visible before the transfer fires
+            const next = prev + (targetS - prev) * 0.08;
+            ch.dataset.squish = next;
+
+            // Reset accumulated shift at each line wrap (row changes top offset)
+            const top = Math.round(r.top);
+            if (rowTop !== null && Math.abs(top - rowTop) > 2) cumShift = 0;
+            rowTop = top;
+
+            const sqX = next > 0.005 ? (1 - next * 0.65) : 1;
+            ch.style.setProperty('--sq-x',  sqX.toFixed(3));
+            ch.style.setProperty('--sq-tx', cumShift > 0.4 ? `-${cumShift.toFixed(1)}px` : '0px');
+            cumShift += r.width * (1 - sqX);
+
+            if (next > maxSquish) maxSquish = next;
+          });
         });
 
-        if (maxSquish > 0.55) switchToColumn(mSX, mSY, screenRadius, W);
+        // Only hand off to the scattered layout once the squeeze is pronounced
+        if (maxSquish > 0.7) switchToColumn(mSX, mSY, screenRadius, W);
       } else if (textLayout === 'column') {
         // Return to left when model is clearly right of the text zone
         if (mSX > W * 0.52) switchToLeft();
@@ -2449,6 +2737,7 @@ function clearItemSquish() {
   });
   document.querySelectorAll('#speech-inner .speech-char').forEach(ch => {
     ch.style.removeProperty('--sq-x');
+    ch.style.removeProperty('--sq-tx');
     delete ch.dataset.squish;
   });
 }
@@ -2845,6 +3134,24 @@ function showErr(msg) {
 function clearErr() { document.getElementById('error').style.display = 'none'; }
 
 // ── Placeholder floating text ─────────────────────────────────────────────
+// Nutrient fact shown when hovering (fleeing from) a placeholder letter —
+// keyed by the letter's lowercase first character, [name, role-in-the-body].
+const NUTRIENT_FACTS = {
+  a: ['Vitamin A',           'supports healthy vision, immune defense, and skin-cell renewal.'],
+  c: ['Vitamin C',           'an antioxidant that strengthens immunity and builds collagen for skin and joints.'],
+  d: ['Vitamin D',           'helps the body absorb calcium, keeping bones and teeth strong.'],
+  e: ['Vitamin E',           'an antioxidant that protects cell membranes from oxidative damage.'],
+  f: ['Folate (Vitamin B9)', 'essential for DNA synthesis and healthy cell division, especially during growth.'],
+  g: ['Glutamine',           'an amino acid that fuels the cells lining the gut and supports immune function.'],
+  h: ['Biotin (Vitamin H)',  'helps the body convert carbs, fats, and proteins into usable energy.'],
+  l: ['Lutein',              "a carotenoid that filters harmful light and protects the eye's retina."],
+  n: ['Niacin (Vitamin B3)', 'powers cellular energy production and supports a healthy nervous system.'],
+  o: ['Omega-3 Fatty Acids', 'support heart and brain health and help reduce inflammation.'],
+  p: ['Potassium',           'regulates fluid balance, nerve signals, and muscle contractions, including the heartbeat.'],
+  r: ['Riboflavin (Vitamin B2)', 'helps release energy from food and keeps skin and eyes healthy.'],
+  t: ['Thiamine (Vitamin B1)',   'helps convert nutrients into energy and supports nerve function.'],
+  u: ['Ubiquinone (CoQ10)',  'an antioxidant that powers cell mitochondria and supports heart health.'],
+};
 {
   const text = 'upload a food photo to generate character card';
   const container = document.getElementById('placeholder-text');
@@ -2869,6 +3176,7 @@ function clearErr() { document.getElementById('error').style.display = 'none'; }
   document.addEventListener('mousemove', e => {
     const ph = document.getElementById('placeholder');
     if (!ph || ph.style.display === 'none') return;
+    let nearest = null, nearestDist = Infinity;
     ph.querySelectorAll('.ph-char').forEach(ch => {
       const r  = ch.getBoundingClientRect();
       const cx = r.left + r.width  / 2;
@@ -2881,11 +3189,22 @@ function clearErr() { document.getElementById('error').style.display = 'none'; }
         const force = (radius - dist) / radius;
         ch.style.setProperty('--flee-x', `${((dx / dist) * force * 45).toFixed(1)}px`);
         ch.style.setProperty('--flee-y', `${((dy / dist) * force * 45).toFixed(1)}px`);
+        if (dist < nearestDist) { nearestDist = dist; nearest = ch; }
       } else {
         ch.style.setProperty('--flee-x', '0px');
         ch.style.setProperty('--flee-y', '0px');
       }
     });
+
+    // Show a nutrient fact for the letter currently being fled from
+    const hint = document.getElementById('ph-nutrient-hint');
+    const fact = nearest && NUTRIENT_FACTS[nearest.textContent.toLowerCase()];
+    if (fact) {
+      hint.innerHTML = `<b>${fact[0]}</b> — ${fact[1]}`;
+      hint.classList.add('show');
+    } else {
+      hint.classList.remove('show');
+    }
   });
 }
 
@@ -3925,6 +4244,7 @@ function resetAll() {
   if (rafId)       { cancelAnimationFrame(rafId); rafId = null; }
   if (speechTimer)   { clearTimeout(speechTimer);   speechTimer   = null; }
   if (crystalTimeout){ clearTimeout(crystalTimeout); crystalTimeout = null; }
+  if (blurTimeout)   { clearTimeout(blurTimeout);    blurTimeout    = null; }
   if (currentAudio) { currentAudio.pause(); currentAudio = null; }
   if (window.speechSynthesis) window.speechSynthesis.cancel();
   speechList = []; speechIdx = 0; talking = false; mouthOpen = false;

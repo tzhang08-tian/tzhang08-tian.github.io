@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>I Love You Monster — Tianyu Zhang</title>
+  <style>
+    body {
+      font-family: monospace;
+      color: #111;
+      margin: 0;
+      padding: 4rem 1.5rem;
+    }
+    a { color: #111; }
+    .back {
+      position: fixed;
+      top: 1.5rem;
+      left: 1.5rem;
+      font-size: 0.8rem;
+      color: #555;
+      text-decoration: none;
+    }
+    .back:hover { color: #111; }
+    .piece {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    h1 {
+      font-size: 1.2rem;
+      margin: 0 0 1rem;
+    }
+    .meta {
+      margin-bottom: 2rem;
+      color: #555;
+      font-size: 0.8rem;
+      line-height: 1.6;
+    }
+    .photo-stack img {
+      max-width: 100%;
+      display: block;
+      margin: 0 auto 6rem;
+    }
+    .photo-stack img.small {
+      max-width: 50%;
+    }
+  </style>
+</head>
+<body>
+  <a class="back" id="back-link" href="../work.html">← back to work</a>
+  <div class="piece">
+    <h1>I Love You Monster</h1>
+    <div class="meta">
+      <p>2025</p>
+      <p style="font-style: italic;">book</p>
+    </div>
+    <div class="photo-stack">
+      <img src="../work/i_love_you_monster/1.png" alt="I Love You Monster">
+      <img src="../work/i_love_you_monster/2.png" alt="I Love You Monster">
+      <img src="../work/i_love_you_monster/3.png" alt="I Love You Monster">
+      <img src="../work/i_love_you_monster/4.png" alt="I Love You Monster">
+      <img src="../work/i_love_you_monster/5.png" alt="I Love You Monster">
+      <img src="../work/i_love_you_monster/6.png" alt="I Love You Monster">
+      <img src="../work/i_love_you_monster/7.png" alt="I Love You Monster">
+      <img src="../work/i_love_you_monster/8.png" alt="I Love You Monster">
+      <img class="small" src="../work/i_love_you_monster/9.png" alt="I Love You Monster">
+    </div>
+  </div>
+  <script>
+    if (new URLSearchParams(window.location.search).get('from') === 'home') {
+      const backLink = document.getElementById('back-link');
+      backLink.href = '../index.html';
+      backLink.textContent = '← back to home';
+    }
+  </script>
+  <script src="../cursor-trail.js"></script>
+</body>
+</html>

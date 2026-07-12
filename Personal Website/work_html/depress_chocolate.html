@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Depress Chocolate — Tianyu Zhang</title>
+  <style>
+    body {
+      font-family: monospace;
+      color: #111;
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+    }
+    a { color: #111; }
+    .back {
+      position: fixed;
+      top: 1.5rem;
+      left: 1.5rem;
+      font-size: 0.8rem;
+      color: #555;
+      text-decoration: none;
+      z-index: 1;
+    }
+    .back:hover { color: #111; }
+    .left-col {
+      flex-shrink: 0;
+      padding: 4rem 3rem 2rem 9rem;
+      overflow-y: auto;
+      direction: rtl;
+    }
+    .piece {
+      max-width: 650px;
+      direction: ltr;
+    }
+    .photo-stack img {
+      max-width: 100%;
+      display: block;
+      margin: 0 0 0.5rem;
+    }
+    #photo-1 { max-width: 60%; }
+    #photo-2 { max-width: 90%; }
+    #photo-3 { max-width: 70%; }
+    #photo-4 { max-width: 50%; }
+    #photo-5 { max-width: 90%; }
+    #photo-6 { max-width: 85%; }
+    #photo-7 { max-width: 60%; }
+    .right-col {
+      flex: 1;
+      padding: 6rem 11rem 9rem 0rem;
+      overflow: hidden;
+    }
+    .intro {
+      max-width: 340px;
+      line-height: 1.8;
+      text-align: center;
+      margin: 0 auto;
+    }
+    .intro h1 {
+      font-size: 1.2rem;
+      margin: 0 0 1.5rem;
+    }
+    .intro p { margin: 2rem 0; }
+  </style>
+</head>
+<body>
+  <a class="back" id="back-link" href="../work.html">← back to work</a>
+  <div class="left-col">
+    <div class="piece">
+      <div class="photo-stack">
+        <img id="photo-1" src="../work/depress_chocolate/1.png" alt="Depress Chocolate">
+        <img id="photo-2" src="../work/depress_chocolate/2.png" alt="Depress Chocolate">
+        <img id="photo-3" src="../work/depress_chocolate/3.png" alt="Depress Chocolate">
+        <img id="photo-4" src="../work/depress_chocolate/4.png" alt="Depress Chocolate">
+        <img id="photo-5" src="../work/depress_chocolate/5.png" alt="Depress Chocolate">
+        <img id="photo-6" src="../work/depress_chocolate/6.png" alt="Depress Chocolate">
+        <img id="photo-7" src="../work/depress_chocolate/7.png" alt="Depress Chocolate">
+      </div>
+    </div>
+  </div>
+  <div class="right-col">
+    <div class="intro">
+      <h1>Depress Chocolate</h1>
+      <p><small>Although I swore never to consume artificial sweeteners again, whenever I feel sad or under pressure, I still crave a bit of sweetness. Since moving to this new place, I've often had nightmares—sometimes I see ghosts, sometimes I'm running from someone trying to kill me.<br>Yet to me, dreams are often an intriguing extension of reality. Maybe I'm strange, but I actually enjoy that kind of fear. It feels like a bizarre and dazzling flower blooming in fertile soil. They allow me to see my naked self, and letting the invisible self take shape for a moment is, in its own way, quite fascinating.</small></p>
+      <p><small>⸻</small></p>
+      <p><small>Nutrition Facts<br>• 18 servings per package<br>• Serving size: one-depress event of mine / 1/18 bar mentally<br>• Calories: {}[1015｝（*-*）</small></p>
+    </div>
+  </div>
+  <script>
+    if (new URLSearchParams(window.location.search).get('from') === 'home') {
+      const backLink = document.getElementById('back-link');
+      backLink.href = '../index.html';
+      backLink.textContent = '← back to home';
+    }
+  </script>
+  <script src="../cursor-trail.js"></script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mu Xiu Yu Lin — Tianyu Zhang</title>
+  <style>
+    body {
+      font-family: monospace;
+      color: #111;
+      margin: 0;
+    }
+    a { color: #111; }
+    .back {
+      position: fixed;
+      top: 1.5rem;
+      left: 1.5rem;
+      font-size: 0.8rem;
+      color: #555;
+      text-decoration: none;
+      z-index: 10;
+    }
+    .back:hover { color: #111; }
+    .hero-video {
+      width: 100vw;
+      height: 55vh;
+      object-fit: cover;
+      display: block;
+    }
+    .content {
+      padding: 4rem 1.5rem 2rem;
+    }
+    .piece {
+      max-width: 650px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    h1 {
+      font-size: 1.2rem;
+      margin: 0 0 1rem;
+    }
+    .meta {
+      margin-bottom: 2rem;
+      color: #555;
+      font-size: 0.8rem;
+      line-height: 1.6;
+    }
+    .photo-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .photo-stack img {
+      max-width: 100%;
+      display: block;
+      margin: 0 0 2rem;
+    }
+    #photo-2 { max-width: 100%; }
+    #photo-3 { max-width: 100%; margin-bottom: 6rem; }
+    #photo-4 { max-width: 50%; margin-bottom: 6rem; }
+    #photo-5 { max-width: 150%; margin-bottom: 6rem; }
+    #photo-6 { max-width: 100%; }
+    #photo-7 { max-width: 100%; margin-bottom: 6rem; }
+    #photo-8 { max-width: 60%; margin-bottom: 0; }
+    #photo-9 { max-width: 60%; margin-bottom: 6rem;}
+    #photo-10 { max-width: 150%; margin-bottom: 8rem;}
+    #photo-11 { max-width: 100%; }
+    #photo-12 { max-width: 100%; }
+  </style>
+</head>
+<body>
+  <a class="back" id="back-link" href="../work.html">← back to work</a>
+  <video class="hero-video" src="../work/mu_xiu_yu_lin/1.mov" autoplay loop muted playsinline></video>
+  <div class="content">
+    <div class="piece">
+      <h1>Mu Xiu Yu Lin 木秀于林</h1>
+      <div class="meta">
+        <p>2025</p>
+      </div>
+      <div class="photo-stack">
+        <img id="photo-2" src="../work/mu_xiu_yu_lin/2.png" alt="Mu Xiu Yu Lin">
+        <img id="photo-3" src="../work/mu_xiu_yu_lin/3.png" alt="Mu Xiu Yu Lin">
+        <img id="photo-4" src="../work/mu_xiu_yu_lin/4.png" alt="Mu Xiu Yu Lin">
+        <img id="photo-5" src="../work/mu_xiu_yu_lin/5.png" alt="Mu Xiu Yu Lin">
+        <img id="photo-6" src="../work/mu_xiu_yu_lin/6.png" alt="Mu Xiu Yu Lin">
+        <img id="photo-7" src="../work/mu_xiu_yu_lin/7.png" alt="Mu Xiu Yu Lin">
+        <img id="photo-8" src="../work/mu_xiu_yu_lin/8.png" alt="Mu Xiu Yu Lin">
+        <img id="photo-9" src="../work/mu_xiu_yu_lin/9.png" alt="Mu Xiu Yu Lin">
+        <img id="photo-10" src="../work/mu_xiu_yu_lin/10.png" alt="Mu Xiu Yu Lin">
+        <img id="photo-11" src="../work/mu_xiu_yu_lin/11.png" alt="Mu Xiu Yu Lin">
+        <img id="photo-12" src="../work/mu_xiu_yu_lin/12.png" alt="Mu Xiu Yu Lin">
+      </div>
+    </div>
+  </div>
+  <script>
+    if (new URLSearchParams(window.location.search).get('from') === 'home') {
+      const backLink = document.getElementById('back-link');
+      backLink.href = '../index.html';
+      backLink.textContent = '← back to home';
+    }
+
+    const heroVideo = document.querySelector('.hero-video');
+    heroVideo.playbackRate = 1.25;
+    heroVideo.addEventListener('loadedmetadata', () => { heroVideo.playbackRate = 1.25; });
+  </script>
+  <script src="../cursor-trail.js"></script>
+</body>
+</html>

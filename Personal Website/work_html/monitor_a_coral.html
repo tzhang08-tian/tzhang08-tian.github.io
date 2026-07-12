@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitoring a coral — Tianyu Zhang</title>
+  <style>
+    body {
+      font-family: monospace;
+      color: #111;
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+    }
+    a { color: #111; }
+    .back {
+      position: fixed;
+      top: 1.5rem;
+      left: 1.5rem;
+      font-size: 0.8rem;
+      color: #555;
+      text-decoration: none;
+      z-index: 1;
+    }
+    .back:hover { color: #111; }
+    .left-col {
+      flex-shrink: 0;
+      padding: 4rem 3rem 2rem 9rem;
+      overflow: hidden;
+    }
+    .piece {
+      max-width: 416px;
+    }
+    h1 {
+      font-size: 1.2rem;
+      margin: 0 0 1rem;
+    }
+    img {
+      max-width: 100%;
+      display: block;
+    }
+    .photo-viewer {
+      position: relative;
+      width: 100%;
+      margin: 1.2rem 0;
+    }
+    .photo-box {
+      width: 100%;
+      aspect-ratio: 4000 / 5042;
+    }
+    .photo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .photo-arrow {
+      position: absolute;
+      top: 50%;
+      font-size: 2.2rem;
+      color: #ddd;
+      cursor: pointer;
+      user-select: none;
+      line-height: 1;
+      transform: translateY(-50%) scaleY(2.8);
+    }
+    .photo-arrow:hover { color: #bbb; }
+    .photo-arrow.prev { left: -2rem; }
+    .photo-arrow.next { right: -2rem; }
+    .meta {
+      margin-top: 1rem;
+      color: #555;
+      font-size: 0.8rem;
+      line-height: 1.6;
+    }
+    .right-col {
+      flex: 1;
+      padding: 4rem 3rem 2rem 8rem;
+      overflow-y: auto;
+    }
+    .intro {
+      max-width: 480px;
+      line-height: 1.8;
+      text-align: left;
+    }
+    .intro p { margin: 2rem 0; }
+    .intro .credit {
+      color: #555;
+      text-align: right;
+      font-style: italic;
+      margin-top: 4rem;
+    }
+    .intro video {
+      max-width: 100%;
+      display: block;
+      margin: 1rem 0 2rem;
+    }
+  </style>
+</head>
+<body>
+  <a class="back" id="back-link" href="../work.html">← back to work</a>
+  <div class="left-col">
+    <div class="piece">
+      <h1>Monitoring a coral</h1>
+      <div class="photo-viewer">
+        <div class="photo-box">
+          <img id="piece-img" src="../work/monitoring_a_coral/1.JPG" alt="Monitoring a coral">
+        </div>
+        <span class="photo-arrow prev" id="prev-photo">&lt;</span>
+        <span class="photo-arrow next" id="next-photo">&gt;</span>
+      </div>
+      <div class="meta">
+        <p>2026</p>
+        <p>Material: Arduino, Recycled cardboard, Tape, paper</p>
+        <p>Size: 15cm x 15cm x 30cm</p>
+      </div>
+    </div>
+  </div>
+  <div class="right-col">
+    <div class="intro">
+      <p><small>Where is the boundary of the monitorable?<br>This is the question the work asks.<br>We touch it with sensors, translate it through screens, and predict it with algorithms.<br>When control and detection become forms of intimacy, does nature remain anything more than a sign?</small></p>
+      <video src="../work/monitoring_a_coral/right/1.MP4" autoplay loop muted playsinline></video>
+      <p><small>We often say technology is advancing.<br>The world is developing.<br>But must development always accelerate?<br>Does progress carry a silent center from which everything is measured?<br>When everything becomes monitorable,<br>are we quietly redefining what is worthy of existence?<br>When progress is measured by our capacity to control,<br>are we beginning to treat what cannot be measured as invalid?</small></p>
+      <video src="../work/monitoring_a_coral/right/2.MP4" autoplay loop muted playsinline></video>
+      <p><small>Technology grants us unprecedented visibility,<br>yet it also produces a new distance.<br>When experience is converted into data, when perception is replaced by models,<br>do we lose the ability to confront complexity and uncertainty directly?<br>We believe we are approaching the world more closely,<br>yet perhaps we are only approaching its simulation.</small></p>
+      <video src="../work/monitoring_a_coral/right/3.MP4" autoplay loop muted playsinline></video>
+      <p><small>Green screen technology renders reality replaceable.<br>It allows environments to be erased and reconstructed into spaces more aligned with imagination and control.<br>In this work, the green screen is not merely a visual device,<br>but a reference to a technological logic—<br>when nature can be substituted, when the world becomes editable material,<br>do we gradually grow accustomed to understanding the real through simulation?<br>Technological development expands our capacity to construct,<br>yet it may also confine us within an increasingly processed world.</small></p>
+      <video src="../work/monitoring_a_coral/right/4.mov" autoplay loop muted playsinline></video>
+      <p class="credit"><small>Published in Vision Magazine; exhibited at Brown University<br>May 2026, Providence, RI</small></p>
+    </div>
+  </div>
+  <script>
+    if (new URLSearchParams(window.location.search).get('from') === 'home') {
+      const backLink = document.getElementById('back-link');
+      backLink.href = '../index.html';
+      backLink.textContent = '← back to home';
+    }
+
+    const photos = ['1.JPG', '2.JPG', '3.JPG', '4.JPG', '5.jpg', '6.JPG', '7.JPG', '8.JPG'];
+    let photoIndex = 0;
+    const pieceImg = document.getElementById('piece-img');
+    function updatePhoto() {
+      pieceImg.src = '../work/monitoring_a_coral/' + photos[photoIndex];
+    }
+    document.getElementById('prev-photo').addEventListener('click', () => {
+      photoIndex = (photoIndex - 1 + photos.length) % photos.length;
+      updatePhoto();
+    });
+    document.getElementById('next-photo').addEventListener('click', () => {
+      photoIndex = (photoIndex + 1) % photos.length;
+      updatePhoto();
+    });
+  </script>
+  <script src="../cursor-trail.js"></script>
+</body>
+</html>

@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tianyu Zhang — RISD Art and Computation</title>
+  <style>
+    body {
+      font-family: monospace;
+      max-width: 640px;
+      margin: 4rem auto;
+      padding: 0 1.5rem;
+      color: #111;
+    }
+    h1 { font-size: 1.1rem; margin-bottom: 0.25rem; }
+    p  { margin: 0.25rem 0; color: #555; font-size: 0.8rem; }
+    .bio { margin: 0.25rem 0; font-size: 0.7rem; line-height: 1.75; letter-spacing: 0.03em; }
+    a  { color: #111; }
+    img { max-width: 100%; margin-top: 1.5rem; border-radius: 0; }
+    .float {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      max-width: 40vw;
+      margin-top: 0;
+      pointer-events: auto;
+      z-index: -1;
+      transition: transform 0.25s ease;
+      transform-origin: center;
+    }
+    .float:hover {
+      transform: scale(1.07);
+    }
+    .side-block {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 340px;
+      height: 100vh;
+      background: #f2ece2;
+      z-index: -10;
+      transition: width 0.3s ease;
+    }
+    #trail-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -9;
+    }
+    .trail-mark {
+      position: fixed;
+      border: 1px solid #ddd;
+      background: transparent;
+      box-sizing: border-box;
+    }
+    .side-block.shrink {
+      width: 310px;
+    }
+    body:has(.work-link:hover, .music-link:hover, .sketchbook-link:hover) .side-block {
+      width: 330px;
+    }
+    #coral { width: 350px; }
+    #work-tooltip {
+      display: none;
+      position: fixed;
+      background: #fff;
+      border: 1px solid #111;
+      color: #111;
+      font-family: monospace;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.6rem;
+      pointer-events: none;
+      z-index: 1001;
+      white-space: nowrap;
+    }
+    #coral2 { width: 250px; }
+    #photoB { width: 133px; }
+    #alter { width: 280px; }
+    #balcony { width: 200px; }
+    #choco { width: 126px; }
+    #monster { width: 154px; }
+    #monster2 { width: 260px; }
+    #sign { width: 210px; }
+    .header {
+      position: fixed;
+      top: 1.5rem;
+      left: 1.5rem;
+      line-height: 1.8;
+      max-width: 320px;
+      display: flex;
+      align-items: center;
+    }
+    .title-avatar {
+      width: 0;
+      height: 60px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+      opacity: 0;
+      transition: width 0.3s ease, margin-right 0.3s ease, opacity 0.3s ease;
+    }
+    .title-avatar img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      margin: 0;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    #avatar-lightbox {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,0.95);
+      align-items: center;
+      justify-content: center;
+      cursor: zoom-out;
+      z-index: 100;
+    }
+    #avatar-lightbox img {
+      max-width: 63vw;
+      max-height: 63vh;
+      margin-top: 0;
+      border-radius: 0;
+    }
+    .header:hover .title-avatar {
+      width: 60px;
+      margin-right: 0.6rem;
+      opacity: 1;
+    }
+    .nav {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 1.5rem;
+      line-height: 1.8;
+    }
+    .top-right-nav {
+      position: fixed;
+      top: 9rem;
+      left: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.4rem;
+    }
+    .bio-wrap {
+      position: fixed;
+      top: 62%;
+      left: 1.5rem;
+      transform: translateY(-50%);
+      max-width: 220px;
+    }
+    .work-link, .sketchbook-link, .music-link {
+      font-family: 'Blue Screen Personal Use', 'Sabon Next', 'Sabon', serif;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #555;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+    .work-link:hover, .sketchbook-link:hover, .music-link:hover { color: #c0392b; }
+    .arrow {
+      display: inline-block;
+      margin-right: 0.2rem;
+      transform-origin: left center;
+      transition: transform 0.3s ease;
+    }
+    .work-link:hover .arrow,
+    .sketchbook-link:hover .arrow,
+    .music-link:hover .arrow {
+      transform: scaleX(1.8);
+    }
+    .cat-label {
+      display: inline-block;
+      transition: transform 0.3s ease;
+    }
+    .work-link:hover .cat-label,
+    .sketchbook-link:hover .cat-label,
+    .music-link:hover .cat-label {
+      transform: translateX(0.9rem);
+    }
+    details summary { list-style: none; cursor: pointer; font-size: 0.8rem; color: #555; }
+    details summary::-webkit-details-marker { display: none; }
+    .nav a { display: block; font-size: 0.8rem; color: #555; text-decoration: none; }
+    .nav a:hover { color: #111; }
+  </style>
+</head>
+<body>
+  <div class="side-block"></div>
+  <div id="trail-layer"></div>
+  <div class="top-right-nav">
+    <a class="work-link" href="work.html"><span class="arrow">→</span><span class="cat-label">work</span></a>
+    <a class="music-link" href="https://soundcloud.com/booze355003899?ref=clipboard&p=i&c=0&si=98CE160853DD49BD8B879DE18F411323&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing" target="_blank"><span class="arrow">→</span><span class="cat-label">music</span></a>
+    <a class="sketchbook-link" href="sketchbook.html"><span class="arrow">→</span><span class="cat-label">sketch</span></a>
+  </div>
+  <div class="header">
+    <span class="title-avatar"><img id="avatar-thumb" src="mainpage_photo/T.jpg" alt="T"></span>
+    <h1>Tianyu Zhang</h1>
+  </div>
+  <div id="avatar-lightbox"><img id="avatar-lightbox-img" src="mainpage_photo/T.jpg" alt="T"></div>
+  <div class="bio-wrap">
+    <p class="bio">Tianyu Zhang is an Artist whose interdisciplinary practice spans painting, sculpture, music, games, and interactive installations. Her work explores technology and social ethics, food and human health, and the relationship between people and nature.</p>
+  </div>
+  <div class="nav">
+    <a href="contact.html" target="_blank">→ info</a>
+    <a href="Tianyu_Zhang_Artist_Resume .pdf" target="_blank">→ resume</a>
+    <a href="https://www.instagram.com/fc9_art/" target="_blank">→ instagram</a>
+  </div>
+  <img id="coral" class="float" src="mainpage_photo/Coral.JPG" alt="">
+  <div id="work-tooltip"></div>
+  <video id="coral2" class="float" src="mainpage_photo/Coral2.mov" autoplay loop muted playsinline></video>
+  <img id="alter" class="float" src="mainpage_photo/Alter.png" alt="">
+  <img id="balcony" class="float" src="mainpage_photo/balcony.png" alt="">
+  <img id="choco" class="float" src="mainpage_photo/Choco.png" alt="">
+  <img id="monster" class="float" src="mainpage_photo/monster.png" alt="">
+  <img id="monster2" class="float" src="mainpage_photo/monster2.png" alt="">
+  <img id="sign" class="float" src="mainpage_photo/sign.png" alt="">
+  <script>
+    const sideBlockEl = document.querySelector('.side-block');
+    const topRightNavEl = document.querySelector('.top-right-nav');
+    topRightNavEl.addEventListener('mouseenter', () => sideBlockEl.classList.add('shrink'));
+    topRightNavEl.addEventListener('mouseleave', () => sideBlockEl.classList.remove('shrink'));
+
+    const avatarThumb = document.getElementById('avatar-thumb');
+    const avatarLightbox = document.getElementById('avatar-lightbox');
+    avatarThumb.addEventListener('click', () => { avatarLightbox.style.display = 'flex'; });
+    avatarLightbox.addEventListener('click', () => { avatarLightbox.style.display = 'none'; });
+
+    const floatIds = ['coral','coral2','alter','balcony','choco','monster','monster2','sign'];
+    const floatEls = floatIds.map(id => document.getElementById(id));
+
+    // drops a gray outline behind the drifting photos every 0.05s-0.7s (transitioning each time); each mark disappears after 20s
+    const trailLayer = document.getElementById('trail-layer');
+
+    function dropTrails() {
+      floatEls.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        const mark = document.createElement('div');
+        mark.className = 'trail-mark';
+        mark.style.left = rect.left + 'px';
+        mark.style.top = rect.top + 'px';
+        mark.style.width = rect.width + 'px';
+        mark.style.height = rect.height + 'px';
+        trailLayer.appendChild(mark);
+        setTimeout(() => mark.remove(), 20000);
+      });
+    }
+    let trailDelay = 50;
+    let trailDelayDirection = 1;
+    const trailDelayStep = 40;
+    function scheduleTrails() {
+      dropTrails();
+      trailDelay += trailDelayDirection * trailDelayStep;
+      if (trailDelay >= 700) { trailDelay = 700; trailDelayDirection = -1; }
+      else if (trailDelay <= 50) { trailDelay = 50; trailDelayDirection = 1; }
+      setTimeout(scheduleTrails, trailDelay);
+    }
+
+    // remembers where every image is headed, so new targets can spread out from them
+    const targets = new Map();
+
+    const sideBlockWidth = sideBlockEl.offsetWidth;
+
+    const overlapAllowance = 40;
+
+    function pickPosition(el, w, h) {
+      const minX = Math.min(sideBlockWidth - overlapAllowance, Math.max(0, window.innerWidth - w));
+      const maxX = window.innerWidth - w;
+      const maxY = window.innerHeight - h;
+      let best = null;
+      let bestScore = -1;
+      const attempts = targets.size === 0 ? 1 : 30;
+      for (let i = 0; i < attempts; i++) {
+        const x = minX + Math.random() * Math.max(0, maxX - minX);
+        const y = Math.random() * maxY;
+        let minDist = Infinity;
+        targets.forEach((t, other) => {
+          if (other === el) return;
+          const d = Math.hypot((x + w / 2) - (t.x + t.w / 2), (y + h / 2) - (t.y + t.h / 2));
+          if (d < minDist) minDist = d;
+        });
+        if (minDist > bestScore) {
+          bestScore = minDist;
+          best = { x, y };
+        }
+      }
+      return best;
+    }
+
+    // continuous velocity-based motion; bounces off the screen edges (and the side-block edge) instead of teleporting
+    const floatState = new Map();
+
+    floatEls.forEach(el => {
+      const w = el.offsetWidth;
+      const h = el.offsetHeight;
+      const { x, y } = pickPosition(el, w, h);
+      targets.set(el, { x, y, w, h });
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      const baseZIndex = -1 - Math.floor(Math.random() * floatEls.length);
+      el.style.zIndex = baseZIndex;
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 15 + Math.random() * 15; // px/s, slow drift
+      const state = { x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, baseZIndex, hovered: false };
+      floatState.set(el, state);
+
+      el.addEventListener('mouseenter', () => {
+        state.hovered = true;
+        el.style.zIndex = 1000;
+      });
+      el.addEventListener('mouseleave', () => {
+        state.hovered = false;
+        el.style.zIndex = state.baseZIndex;
+      });
+    });
+
+    const workTooltip = document.getElementById('work-tooltip');
+    function linkFloatToWork(el, label, href) {
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', () => {
+        window.location.href = href + '?from=home';
+      });
+      el.addEventListener('mouseenter', () => {
+        const rect = el.getBoundingClientRect();
+        workTooltip.textContent = label;
+        workTooltip.style.display = 'block';
+        const tw = workTooltip.offsetWidth;
+        const th = workTooltip.offsetHeight;
+        workTooltip.style.left = (rect.right - tw + 20) + 'px';
+        workTooltip.style.top = (rect.bottom - th + 20) + 'px';
+      });
+      el.addEventListener('mouseleave', () => {
+        workTooltip.style.display = 'none';
+      });
+    }
+    linkFloatToWork(document.getElementById('coral'), 'Monitoring a coral', 'work_html/monitor_a_coral.html');
+    linkFloatToWork(document.getElementById('coral2'), 'Monitoring a coral', 'work_html/monitor_a_coral.html');
+    linkFloatToWork(document.getElementById('alter'), 'Warm Alter', 'work_html/warm_alter.html');
+    linkFloatToWork(document.getElementById('sign'), 'Sign', 'work_html/sign.html');
+    linkFloatToWork(document.getElementById('monster'), 'Pi Xiu', 'work_html/pi_xiu.html');
+    linkFloatToWork(document.getElementById('monster2'), 'Pi Xiu', 'work_html/pi_xiu.html');
+    linkFloatToWork(document.getElementById('choco'), 'Depress Chocolate', 'work_html/depress_chocolate.html');
+
+    scheduleTrails();
+
+    let lastTime = performance.now();
+    function animate(now) {
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+      floatState.forEach((state, el) => {
+        if (state.hovered) return;
+        const w = el.offsetWidth;
+        const h = el.offsetHeight;
+        const minX = Math.min(sideBlockWidth - overlapAllowance, Math.max(0, window.innerWidth - w));
+        const maxX = window.innerWidth - w;
+        const maxY = window.innerHeight - h;
+        let { x, y, vx, vy } = state;
+        x += vx * dt;
+        y += vy * dt;
+        if (x < minX) { x = minX; vx = Math.abs(vx); }
+        else if (x > maxX) { x = maxX; vx = -Math.abs(vx); }
+        if (y < 0) { y = 0; vy = Math.abs(vy); }
+        else if (y > maxY) { y = maxY; vy = -Math.abs(vy); }
+        state.x = x; state.y = y; state.vx = vx; state.vy = vy;
+        el.style.left = x + 'px';
+        el.style.top = y + 'px';
+      });
+      requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+  </script>
+  <script src="cursor-trail.js"></script>
+</body>
+</html>

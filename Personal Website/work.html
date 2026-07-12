@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Work — Tianyu Zhang</title>
+  <style>
+    body {
+      font-family: monospace;
+      color: #111;
+      margin: 0;
+      padding: 4rem 1.5rem 2rem 9rem;
+    }
+    a { color: #111; }
+    .back {
+      position: fixed;
+      top: 1.5rem;
+      left: 5rem;
+      font-size: 0.8rem;
+      color: #555;
+      text-decoration: none;
+    }
+    .back:hover { color: #111; }
+    h1 { font-family: 'Blue Screen Personal Use', 'Sabon Next', 'Sabon', serif; font-size: 2rem; margin: 0 0 1.5rem; }
+    .max-width-wrap { max-width: 1100px; margin: 0; }
+    .mode-toggle {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .mode-toggle button {
+      font-family: monospace;
+      font-size: 0.8rem;
+      background: none;
+      border: 1px solid #ccc;
+      color: #555;
+      padding: 0.3rem 0.7rem;
+      cursor: pointer;
+    }
+    .mode-toggle button.active {
+      color: #111;
+      border-color: #111;
+    }
+    .sub-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .sub-filters button {
+      font-family: monospace;
+      font-size: 0.75rem;
+      background: none;
+      border: none;
+      color: #999;
+      padding: 0.2rem 0;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .sub-filters button.active {
+      color: #111;
+      font-weight: bold;
+    }
+    .group {
+      margin-bottom: 2rem;
+    }
+    .group h2 {
+      font-size: 1.2rem;
+      color: #555;
+      font-weight: normal;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 0.3rem;
+      margin-bottom: 0.8rem;
+    }
+    .gallery {
+      column-width: 260px;
+      column-gap: 1rem;
+    }
+    .gallery figure {
+      margin: 0 0 2rem;
+      break-inside: avoid;
+      cursor: pointer;
+    }
+    .gallery img {
+      width: 100%;
+      display: block;
+    }
+    .gallery figcaption {
+      margin-top: 0.4rem;
+      font-size: 0.75rem;
+      color: #555;
+    }
+    .empty {
+      color: #555;
+      font-size: 0.8rem;
+    }
+    #lightbox {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,0.95);
+      align-items: center;
+      justify-content: center;
+      cursor: zoom-out;
+      z-index: 10;
+    }
+    #lightbox img {
+      max-width: 90vw;
+      max-height: 90vh;
+    }
+  </style>
+</head>
+<body>
+  <a class="back" href="index.html">← back</a>
+  <h1>Work</h1>
+  <div class="max-width-wrap">
+    <div class="mode-toggle">
+      <button id="mode-all" class="active">all</button>
+      <button id="mode-category">type</button>
+      <button id="mode-year">year</button>
+    </div>
+    <div class="sub-filters" id="sub-filters"></div>
+    <div id="groups"></div>
+  </div>
+  <div id="lightbox"><img id="lightbox-img" alt=""></div>
+
+  <script>
+    // add entries here as artwork becomes available, e.g.
+    // { src: 'work_photo/piece1.jpg', caption: 'Title, medium', year: '2025', category: 'painting' }
+    // add a "link" field to send clicks to a dedicated project page instead of the lightbox
+    const works = [
+      { src: 'work/monitoring_a_coral/1.JPG', year: '2026', category: 'sculpture', link: 'work_html/monitor_a_coral.html' },
+      { src: 'work/warm_alter/1.png', year: '2024', category: 'sculpture', link: 'work_html/warm_alter.html' },
+      { src: 'work/pi_xiu/1.png', year: '2025', category: 'sculpture', link: 'work_html/pi_xiu.html' },
+      { src: 'work/sign/1.png', year: '2026', category: 'printmaking', link: 'work_html/sign.html' },
+      { src: 'work/all_the_love_make_up_me/1.png', year: '2025', category: 'sculpture', link: 'work_html/all_the_love_make_up_me.html' },
+      { src: 'work/blindfield/1.png', year: '2023', category: 'sculpture', link: 'work_html/blindfield.html' },
+      { src: 'work/monster/3.png', year: '2025', category: 'modeling', link: 'work_html/monster.html' },
+      { src: 'work/i_love_you_monster/1.png', year: '2025', category: 'printmaking', link: 'work_html/i_love_you_monster.html' },
+      { src: 'work/depress_chocolate/1.png', year: '2025', category: 'printmaking', link: 'work_html/depress_chocolate.html' },
+      { src: 'work/mu_xiu_yu_lin/2.png', year: '2025', category: 'modeling', link: 'work_html/mu_xiu_yu_lin.html' },
+      { src: 'work/balcony_is_not_your_whole_world/11.png', year: '2025', category: 'painting', link: 'work_html/balcony_is_not_your_whole_world.html' },
+    ];
+
+    const years = ['2026', '2025', '2024', '2023'];
+    const categories = [
+      { key: 'sculpture', label: 'sculpture / installation' },
+      { key: 'painting', label: 'painting' },
+      { key: 'printmaking', label: 'mechanical drawing / printmaking' },
+      { key: 'netart', label: 'net art' },
+      { key: 'modeling', label: '3D modeling art' },
+      { key: 'product', label: 'design' },
+    ];
+
+    const subFiltersEl = document.getElementById('sub-filters');
+    const groupsEl = document.getElementById('groups');
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    lightbox.addEventListener('click', () => { lightbox.style.display = 'none'; });
+
+    function renderGallery(items) {
+      const gallery = document.createElement('div');
+      gallery.className = 'gallery';
+      if (items.length === 0) {
+        gallery.innerHTML = '<p class="empty">more work coming soon</p>';
+        return gallery;
+      }
+      items.forEach(w => {
+        const figure = document.createElement('figure');
+        const img = document.createElement('img');
+        img.src = w.src;
+        img.alt = w.caption || '';
+        figure.appendChild(img);
+        if (w.caption) {
+          const caption = document.createElement('figcaption');
+          caption.textContent = w.caption;
+          figure.appendChild(caption);
+        }
+        figure.addEventListener('click', () => {
+          if (w.link) {
+            window.location.href = w.link;
+          } else {
+            lightboxImg.src = w.src;
+            lightbox.style.display = 'flex';
+          }
+        });
+        gallery.appendChild(figure);
+      });
+      return gallery;
+    }
+
+    let currentMode = 'all';
+    let currentYear = years[0];
+    let currentCategory = categories[0].key;
+
+    function currentDefs() {
+      if (currentMode === 'all') return [];
+      return currentMode === 'year' ? years.map(y => ({ key: y, label: y })) : categories;
+    }
+
+    function renderSubFilters() {
+      subFiltersEl.innerHTML = '';
+      currentDefs().forEach(def => {
+        const btn = document.createElement('button');
+        btn.textContent = def.label;
+        const isActive = currentMode === 'year' ? def.key === currentYear : def.key === currentCategory;
+        if (isActive) btn.classList.add('active');
+        btn.addEventListener('click', () => {
+          if (currentMode === 'year') currentYear = def.key; else currentCategory = def.key;
+          renderSubFilters();
+          renderSelectedGallery();
+        });
+        subFiltersEl.appendChild(btn);
+      });
+    }
+
+    function renderSelectedGallery() {
+      groupsEl.innerHTML = '';
+      const section = document.createElement('div');
+      section.className = 'group';
+      const items = currentMode === 'all'
+        ? works
+        : works.filter(w => currentMode === 'year' ? w.year === currentYear : w.category === currentCategory);
+      section.appendChild(renderGallery(items));
+      groupsEl.appendChild(section);
+    }
+
+    const allBtn = document.getElementById('mode-all');
+    const yearBtn = document.getElementById('mode-year');
+    const categoryBtn = document.getElementById('mode-category');
+    const modeBtns = [allBtn, categoryBtn, yearBtn];
+
+    function setMode(mode, btn) {
+      currentMode = mode;
+      modeBtns.forEach(b => b.classList.toggle('active', b === btn));
+      renderSubFilters();
+      renderSelectedGallery();
+    }
+
+    allBtn.addEventListener('click', () => setMode('all', allBtn));
+    categoryBtn.addEventListener('click', () => setMode('category', categoryBtn));
+    yearBtn.addEventListener('click', () => setMode('year', yearBtn));
+
+    renderSubFilters();
+    renderSelectedGallery();
+  </script>
+  <script src="cursor-trail.js"></script>
+</body>
+</html>

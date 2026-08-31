@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food &amp; Me — Tianyu Zhang</title>
+  <style>
+    body {
+      font-family: monospace;
+      color: #111;
+      margin: 0;
+      padding: 4rem 1.5rem;
+    }
+    a { color: #111; }
+    .back {
+      position: fixed;
+      top: 1.5rem;
+      left: 1.5rem;
+      font-size: 0.8rem;
+      color: #555;
+      text-decoration: none;
+    }
+    .back:hover { color: #111; }
+    .piece {
+      max-width: 650px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    h1 {
+      font-size: 1.2rem;
+      margin: 0 0 1rem;
+    }
+    .meta {
+      margin-bottom: 2rem;
+      color: #555;
+      font-size: 0.8rem;
+      line-height: 1.6;
+    }
+    .photo-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .photo-stack img {
+      max-width: 100%;
+      display: block;
+      margin: 0 0 2rem;
+    }
+    .photo-stack img.small {
+      max-width: 65%;
+    }
+    .photo-stack img.seventy {
+      max-width: 70%;
+    }
+    .quad {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      width: 70%;
+      margin-bottom: 2rem;
+    }
+    .quad img {
+      width: 100%;
+      height: auto;
+      display: block;
+      margin: 0;
+    }
+    .duo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      width: 100%;
+      margin-bottom: 2rem;
+    }
+    .duo img {
+      width: 100%;
+      height: auto;
+      display: block;
+      margin: 0;
+    }
+    .preview-breakout {
+      width: 100vw;
+      position: relative;
+      left: 50%;
+      margin-left: -50vw;
+      margin-top: 1rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: center;
+    }
+    .site-preview {
+      display: block;
+      width: 90%;
+      max-width: 900px;
+      text-decoration: none;
+      border: 1px solid #ddd;
+    }
+    .site-preview-frame {
+      position: relative;
+      width: 100%;
+      height: 600px;
+      overflow: hidden;
+      background: #f2ece2;
+    }
+    .site-preview-frame iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 250%;
+      height: 250%;
+      border: 0;
+      transform: scale(0.4);
+      transform-origin: top left;
+      pointer-events: none;
+    }
+    .site-preview-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 0.8rem;
+      font-size: 0.75rem;
+      color: #555;
+    }
+    .site-preview:hover .site-preview-label { color: #111; }
+    .statement {
+      text-align: left;
+      font-size: 0.75rem;
+      line-height: 1.9;
+      letter-spacing: 0.03em;
+      color: #555;
+      margin: 1rem 0 3rem;
+    }
+  </style>
+</head>
+<body>
+  <a class="back" id="back-link" href="../work.html">← back to work</a>
+  <div class="piece">
+    <h1>Food &amp; Me</h1>
+    <div class="meta">
+      <p>2026</p>
+    </div>
+    <div class="photo-stack">
+      <div class="quad">
+        <img src="../work/food_and_me/1.jpg" alt="Food &amp; Me">
+        <img src="../work/food_and_me/2.jpg" alt="Food &amp; Me">
+        <img src="../work/food_and_me/3.jpg" alt="Food &amp; Me">
+        <img src="../work/food_and_me/4.jpg" alt="Food &amp; Me">
+      </div>
+      <p class="statement">In my first semester of sophomore year I was holding down three campus jobs on top of coursework. A year of eating badly as a freshman had left me noticeably heavier, so I decided to cook for myself whenever I could find the time. As I picked up bits of nutrition science, I began compressing cooking into the smallest window possible and putting my effort instead into buying the most nutrient-dense food I could. Gradually the food stopped looking like food to me and became a combination of nutritional components. While eating I would think: this is protein, this is fiber, this is good fat, I should have more of it. That is where this work came from.</p>
+      <img class="seventy" src="../work/food_and_me/5.jpg" alt="Food &amp; Me">
+      <img class="seventy" src="../work/food_and_me/6.jpg" alt="Food &amp; Me">
+      <img class="seventy" src="../work/food_and_me/7.jpg" alt="Food &amp; Me">
+      <p class="statement">What I find interesting in hindsight is that this way of thinking works like writing signals into a computer — turning a complex world into a language of 0s and 1s, turning complex food into a simple division between nutritious and not. But food is food. It is made of elements, yet it is not a simple unit of them: the combined taste, the way it is prepared, and who you eat it with are all part of its meaning. The way I reduced food reflects the class I belong to, and the way my class interacts with nature. We do not have much time to care about food, but in America eating carelessly makes it easy to gain weight — unhealthy, and out of step with mainstream ideals of beauty. So our attitude toward food becomes streamlined, even programmed. This is the result of many forces at once. I am not an isolated case.</p>
+      <img src="../work/food_and_me/8.jpg" alt="Food &amp; Me">
+      <img src="../work/food_and_me/9.jpg" alt="Food &amp; Me" style="margin-bottom: 4rem;">
+      <p class="statement">This led me to start wondering which foods were actually necessary. I quit most of my chip- and soda-eating habits — at first purely to save money, since two bags of chips cost about as much as a pack of ground beef. Later, looking at the shelves of snacks in the grocery store, it struck me that these were all foods dreamed up out of pure human imagination, foods that do not exist in nature. That felt genuinely science-fictional. I remembered that as a kid, most of us got more excited about sneaking a snack than about eating an actual meal, even though snacks offer almost no nutritional value to the body — excess sodium, dyes, sugar, and fat, whose real function is to satisfy the tongue and the mind. I am not condemning this. But if I follow the thought further, I realize our taste buds have essentially been domesticated by the snack industry. A chocolate candy I loved a year ago tasted, when I tried it again after half a year of deliberately avoiding snacks, like nothing but artificial flavoring and a lethal amount of sugar.</p>
+      <img src="../work/food_and_me/10.jpg" alt="Food &amp; Me">
+      <p class="statement">Alongside this piece I built a website about food. You upload a photo of your food, and based on its fat, carbohydrate, fiber, and vitamin C content, along with its food type, the site generates a model of that food. The model speaks to you the way a person would introduce themselves. From that model, users can generate cards with editable fonts, filters, and colors, and save them to a card library.</p>
+      <div class="duo">
+        <img src="../work/food_and_me/11.jpg" alt="Food &amp; Me">
+        <img src="../work/food_and_me/12.jpg" alt="Food &amp; Me">
+      </div>
+      <div class="preview-breakout">
+        <a class="site-preview" href="https://pokefoodbyfc92.vercel.app/" target="_blank" rel="noopener">
+          <div class="site-preview-frame">
+            <iframe src="https://pokefoodbyfc92.vercel.app/" tabindex="-1" scrolling="no"></iframe>
+          </div>
+          <div class="site-preview-label">
+            <span>pokefoodbyfc92.vercel.app</span>
+            <span>→</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+  <script>
+    if (new URLSearchParams(window.location.search).get('from') === 'home') {
+      const backLink = document.getElementById('back-link');
+      backLink.href = '../index.html';
+      backLink.textContent = '← back to home';
+    }
+  </script>
+  <script src="../cursor-trail.js"></script>
+</body>
+</html>

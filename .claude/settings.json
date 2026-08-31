@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(perl -i -pe 's{<img src=\"\\(\\\\.\\\\./work/balcony_is_not_your_whole_world/\\(?:2|3|6|9|11|13\\)\\\\.jpg\\)\"}{<img class=\"small\" src=\"$1\"}' balcony_is_not_your_whole_world.html)",
+      "Bash(awk '{print $9, $5}')",
+      "Bash(sips -g pixelWidth -g pixelHeight mainpage_photo/Paver.png)"
+    ]
+  }
+}

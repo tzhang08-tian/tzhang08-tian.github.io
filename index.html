@@ -76,10 +76,9 @@
     #coral2 { width: 250px; }
     #photoB { width: 133px; }
     #alter { width: 280px; }
-    #balcony { width: 200px; }
     #choco { width: 126px; }
-    #monster { width: 154px; }
     #monster2 { width: 260px; }
+    #paver { width: 220px; }
     #sign { width: 210px; }
     .header {
       position: fixed;
@@ -89,44 +88,6 @@
       max-width: 320px;
       display: flex;
       align-items: center;
-    }
-    .title-avatar {
-      width: 0;
-      height: 60px;
-      border-radius: 50%;
-      overflow: hidden;
-      flex-shrink: 0;
-      opacity: 0;
-      transition: width 0.3s ease, margin-right 0.3s ease, opacity 0.3s ease;
-    }
-    .title-avatar img {
-      width: 60px;
-      height: 60px;
-      object-fit: cover;
-      margin: 0;
-      border-radius: 50%;
-      cursor: pointer;
-    }
-    #avatar-lightbox {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(255,255,255,0.95);
-      align-items: center;
-      justify-content: center;
-      cursor: zoom-out;
-      z-index: 100;
-    }
-    #avatar-lightbox img {
-      max-width: 63vw;
-      max-height: 63vh;
-      margin-top: 0;
-      border-radius: 0;
-    }
-    .header:hover .title-avatar {
-      width: 60px;
-      margin-right: 0.6rem;
-      opacity: 1;
     }
     .nav {
       position: fixed;
@@ -184,6 +145,26 @@
     details summary::-webkit-details-marker { display: none; }
     .nav a { display: block; font-size: 0.8rem; color: #555; text-decoration: none; }
     .nav a:hover { color: #111; }
+
+    @media (max-width: 700px) {
+      .side-block, #trail-layer, #work-tooltip, .float { display: none; }
+      body {
+        display: flex;
+        flex-direction: column;
+        max-width: 100%;
+        margin: 0;
+        padding: 3rem 1.5rem 3rem;
+      }
+      .header, .top-right-nav, .bio-wrap, .nav {
+        position: static;
+        max-width: 100%;
+        transform: none;
+      }
+      .header { order: 1; margin-bottom: 1.5rem; }
+      .bio-wrap { order: 2; margin-bottom: 2.5rem; }
+      .top-right-nav { order: 3; gap: 1rem; margin-bottom: 2.5rem; }
+      .nav { order: 4; display: flex; flex-direction: column; gap: 0.6rem; }
+    }
   </style>
 </head>
 <body>
@@ -195,10 +176,8 @@
     <a class="sketchbook-link" href="sketchbook.html"><span class="arrow">→</span><span class="cat-label">sketch</span></a>
   </div>
   <div class="header">
-    <span class="title-avatar"><img id="avatar-thumb" src="mainpage_photo/T.jpg" alt="T"></span>
     <h1>Tianyu Zhang</h1>
   </div>
-  <div id="avatar-lightbox"><img id="avatar-lightbox-img" src="mainpage_photo/T.jpg" alt="T"></div>
   <div class="bio-wrap">
     <p class="bio">Tianyu Zhang is an Artist whose interdisciplinary practice spans painting, sculpture, music, games, and interactive installations. Her work explores technology and social ethics, food and human health, and the relationship between people and nature.</p>
   </div>
@@ -211,23 +190,22 @@
   <div id="work-tooltip"></div>
   <video id="coral2" class="float" src="mainpage_photo/Coral2.mov" autoplay loop muted playsinline></video>
   <img id="alter" class="float" src="mainpage_photo/Alter.png" alt="">
-  <img id="balcony" class="float" src="mainpage_photo/balcony.png" alt="">
   <img id="choco" class="float" src="mainpage_photo/Choco.png" alt="">
-  <img id="monster" class="float" src="mainpage_photo/monster.png" alt="">
   <img id="monster2" class="float" src="mainpage_photo/monster2.png" alt="">
   <img id="sign" class="float" src="mainpage_photo/sign.png" alt="">
+  <img id="paver" class="float" src="mainpage_photo/Paver.png" alt="">
   <script>
+    const isMobile = window.matchMedia('(max-width: 700px)').matches;
+
     const sideBlockEl = document.querySelector('.side-block');
     const topRightNavEl = document.querySelector('.top-right-nav');
-    topRightNavEl.addEventListener('mouseenter', () => sideBlockEl.classList.add('shrink'));
-    topRightNavEl.addEventListener('mouseleave', () => sideBlockEl.classList.remove('shrink'));
+    if (!isMobile) {
+      topRightNavEl.addEventListener('mouseenter', () => sideBlockEl.classList.add('shrink'));
+      topRightNavEl.addEventListener('mouseleave', () => sideBlockEl.classList.remove('shrink'));
+    }
 
-    const avatarThumb = document.getElementById('avatar-thumb');
-    const avatarLightbox = document.getElementById('avatar-lightbox');
-    avatarThumb.addEventListener('click', () => { avatarLightbox.style.display = 'flex'; });
-    avatarLightbox.addEventListener('click', () => { avatarLightbox.style.display = 'none'; });
-
-    const floatIds = ['coral','coral2','alter','balcony','choco','monster','monster2','sign'];
+    if (!isMobile) {
+    const floatIds = ['coral','coral2','alter','choco','monster2','sign','paver'];
     const floatEls = floatIds.map(id => document.getElementById(id));
 
     // drops a gray outline behind the drifting photos every 0.05s-0.7s (transitioning each time); each mark disappears after 20s
@@ -319,7 +297,7 @@
     function linkFloatToWork(el, label, href) {
       el.style.cursor = 'pointer';
       el.addEventListener('click', () => {
-        window.location.href = href + '?from=home';
+        window.location.href = /^https?:\/\//.test(href) ? href : href + '?from=home';
       });
       el.addEventListener('mouseenter', () => {
         const rect = el.getBoundingClientRect();
@@ -338,9 +316,9 @@
     linkFloatToWork(document.getElementById('coral2'), 'Monitoring a coral', 'work_html/monitor_a_coral.html');
     linkFloatToWork(document.getElementById('alter'), 'Warm Alter', 'work_html/warm_alter.html');
     linkFloatToWork(document.getElementById('sign'), 'Sign', 'work_html/sign.html');
-    linkFloatToWork(document.getElementById('monster'), 'Pi Xiu', 'work_html/pi_xiu.html');
     linkFloatToWork(document.getElementById('monster2'), 'Pi Xiu', 'work_html/pi_xiu.html');
     linkFloatToWork(document.getElementById('choco'), 'Depress Chocolate', 'work_html/depress_chocolate.html');
+    linkFloatToWork(document.getElementById('paver'), 'paver design', 'https://surf2026-tianyu.vercel.app/');
 
     scheduleTrails();
 
@@ -369,6 +347,7 @@
       requestAnimationFrame(animate);
     }
     requestAnimationFrame(animate);
+    }
   </script>
   <script src="cursor-trail.js"></script>
 </body>

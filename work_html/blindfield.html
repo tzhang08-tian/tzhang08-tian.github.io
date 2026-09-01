@@ -115,6 +115,15 @@
       max-height: 90vh;
       cursor: default;
     }
+
+    @media (max-width: 700px) {
+      body { display: block; height: auto; overflow: visible; overflow-x: hidden; }
+      .left-col { padding: 5rem 1.5rem 1rem; overflow: visible; }
+      .right-col { padding: 1.5rem 1.5rem 3rem; overflow: visible; }
+      .piece, .intro { max-width: 100%; margin: 0 auto; }
+      .photo-arrow.prev { left: -1.1rem; }
+      .photo-arrow.next { right: -1.1rem; }
+    }
   </style>
 </head>
 <body>
@@ -156,6 +165,7 @@
   </div>
   <div id="right-photo-lightbox"><img id="right-photo-lightbox-img" alt=""></div>
   <script>
+    const isMobile = window.matchMedia('(max-width: 700px)').matches;
     const rightPhotoLightbox = document.getElementById('right-photo-lightbox');
     const rightPhotoLightboxImg = document.getElementById('right-photo-lightbox-img');
     document.querySelectorAll('.right-photo img').forEach(img => {
@@ -172,7 +182,7 @@
       const photoTop = document.querySelector('.photo-viewer').getBoundingClientRect().top;
       document.querySelector('.intro').style.marginTop = photoTop + 'px';
     }
-    window.addEventListener('load', alignIntroWithPhoto);
+    if (!isMobile) window.addEventListener('load', alignIntroWithPhoto);
 
     const photos = ['1.png', '2.JPG', '3.JPG', '4.JPG', '5.JPG', '6.JPG', '7.JPG', '8.JPG', '9.jpeg'];
     let photoIndex = 0;

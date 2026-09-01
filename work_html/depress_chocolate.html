@@ -62,6 +62,13 @@
       margin: 0 0 1.5rem;
     }
     .intro p { margin: 2rem 0; }
+
+    @media (max-width: 700px) {
+      body { display: block; height: auto; overflow: visible; overflow-x: hidden; }
+      .left-col { padding: 5rem 1.5rem 1rem; overflow: visible; direction: ltr; }
+      .right-col { padding: 1.5rem 1.5rem 3rem; overflow: visible; }
+      .piece, .intro { max-width: 100%; margin: 0 auto; }
+    }
   </style>
 </head>
 <body>

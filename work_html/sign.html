@@ -94,6 +94,11 @@
       .photo-arrow.prev { left: -1.1rem; }
       .photo-arrow.next { right: -1.1rem; }
     }
+    /* desktop: match the former 110% browser zoom */
+    @media (min-width: 701px) {
+      html { zoom: 1.1; }
+      body { height: calc(100vh / 1.1); }
+    }
   </style>
 </head>
 <body>

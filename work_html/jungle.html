@@ -54,6 +54,10 @@
     .photo-stack img.half {
       max-width: 50%;
     }
+    /* desktop: match the former 110% browser zoom */
+    @media (min-width: 701px) {
+      html { zoom: 1.1; }
+    }
   </style>
 </head>
 <body>
